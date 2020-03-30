@@ -66,7 +66,7 @@ int gImMode = 0;
 std::vector<Vertex> gImVertices;
 glm::u8vec4 gImCurrentColor = glm::u8vec4(255, 255, 255, 255);
 
-glm::mat4 &currentMat() {
+__forceinline glm::mat4 &currentMat() {
     if (gMatrixMode == GL_MODELVIEW) {
         return gModelViewMat;
     }
@@ -75,8 +75,38 @@ glm::mat4 &currentMat() {
     }
 }
 
-uint32_t floatColorToUint(float r, float g, float b, float a) {
+__forceinline uint32_t floatColorToUint(float r, float g, float b, float a) {
     return *reinterpret_cast<const uint32_t*>(glm::value_ptr(glm::u8vec4(r*255, g*255, b*255, a*255)));
+}
+
+template<typename T>
+__forceinline bool compareFunc(int func, T lhs, T rhs) {
+    switch (func) {
+        case GL_NEVER: {
+            return false;
+        }
+        case GL_LESS: {
+            return lhs < rhs;
+        }
+        case GL_EQUAL: {
+            return glm::epsilonEqual(lhs, rhs, glm::epsilon<float>());
+        }
+        case GL_LEQUAL: {
+            return lhs <= rhs;
+        }
+        case GL_GREATER: {
+            return lhs > rhs;
+        }
+        case GL_NOTEQUAL: {
+            return glm::epsilonNotEqual(lhs, rhs, glm::epsilon<float>());
+        }
+        case GL_GEQUAL: {
+            return lhs >= rhs;
+        }
+        case GL_ALWAYS: {
+            return true;
+        }
+    }
 }
 
 void drawTriangle(const Vertex &A, const Vertex &B, const Vertex &C) {
@@ -116,7 +146,7 @@ void drawTriangle(const Vertex &A, const Vertex &B, const Vertex &C) {
                     const float depth = bcClipU*B.pos.z + bcClipV*C.pos.z + bcClipW*A.pos.z;
 
                     uint32_t idx = x + y*gSGL.bufferSize.x;
-                    if (gIsDepthTestEnabled && depth <= gDepthBuffer[idx]) { // TODO: add support other compare functions
+                    if (gIsDepthTestEnabled && compareFunc(gDepthFunc, depth, gDepthBuffer[idx])) {
                         glm::u8vec4 &color = gColorBuffer[idx];
                         color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
                         color.g = (bcScreenU*B.color.g + bcScreenV*C.color.g + bcScreenW*A.color.g);
