@@ -32,7 +32,6 @@ void onEvent(const SDL_Event &event) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
             int w = event.window.data1;
             int h = event.window.data2;
-            //glViewport(w / 2, h / 2, w, h);
             glViewport(0, 0, w, h);
 
             glMatrixMode(GL_PROJECTION);
