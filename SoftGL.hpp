@@ -34,6 +34,7 @@ void sglGetColorBuffer(uint32_t **colorBuffer, int *pitch);
 #define GL_DEPTH_TEST 0x0B71
 
 #define GL_TRIANGLES 0x0004
+#define GL_QUADS 0x0007
 
 void glViewport(int x, int y, int w, int h);
 
@@ -55,4 +56,5 @@ void glDepthFunc(int func);
 
 void glBegin(int mode);
 void glVertex3f(float x, float y, float z);
+void glColor3f(float r, float g, float b);
 void glEnd();

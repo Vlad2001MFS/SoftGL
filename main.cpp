@@ -16,7 +16,7 @@ SDL_Texture *gTarget = nullptr;
 void initialize() {
     glShadeModel(GL_SMOOTH);
 
-    glClearColor(0.5f, 0.5f, 1.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClearDepth(1.0f);
 
     glEnable(GL_DEPTH_TEST);
@@ -44,21 +44,37 @@ void onEvent(const SDL_Event &event) {
     }
 }
 
+float gRotTri = 0.0f;
+float gRotQuad = 0.0f;
+
 void update(float dt) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glLoadIdentity();
-
     glTranslatef(-1.5f, 0.0f, -6.0f);
-
+    glRotatef(gRotTri, 0.0f, 1.0f, 0.0f);
     glBegin(GL_TRIANGLES);
+    glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f( 0.0f, 1.0f, 0.0f);  // Вверх
+    glColor3f(0.0f, 1.0f, 0.0f);
     glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева снизу
-    glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа снизу
-
-    glVertex3f( 0.0f, 1.0f, 0.0f);  // Вверх
-    glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева снизу
+    glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа снизу
     glEnd();
+
+    glLoadIdentity();
+    glTranslatef(1.5f, 0.0f, -6.0f);
+    glRotatef(gRotQuad, 0.0f, 1.0f, 0.0f);
+    glColor3f(0.5f, 0.5f, 1.0f);
+    glBegin(GL_QUADS);
+    glVertex3f(-1.0f, 1.0f, 0.0f);  // Слева вверху
+    glVertex3f( 1.0f, 1.0f, 0.0f);  // Справа вверху
+    glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа внизу
+    glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева внизу
+    glEnd();
+
+    gRotTri += 0.2f;
+    gRotQuad -= 0.15f;
 }
 
 int main(int argc, char **argv) {
