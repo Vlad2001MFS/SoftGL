@@ -15,7 +15,7 @@ struct {
     std::vector<float> depthBuffer;
 } gSGL;
 
-uint32_t *gColorBuffer = nullptr;
+glm::u8vec4 *gColorBuffer = nullptr;
 float *gDepthBuffer = nullptr;
 
 void sglUpdateBuffers(int w, int h) {
@@ -24,14 +24,14 @@ void sglUpdateBuffers(int w, int h) {
     gSGL.surfaceMax = glm::ivec2(w - 1, h - 1);
     gSGL.colorBufferPitch = sizeof(uint32_t)*w;
     gSGL.colorBuffer.resize(w*h);
-    gColorBuffer = gSGL.colorBuffer.data();
+    gColorBuffer = reinterpret_cast<glm::u8vec4*>(gSGL.colorBuffer.data());
 
     gSGL.depthBuffer.resize(w*h);
     gDepthBuffer = gSGL.depthBuffer.data();
 }
 
 void sglGetColorBuffer(uint32_t **colorBuffer, int *pitch) {
-    *colorBuffer = gColorBuffer;
+    *colorBuffer = reinterpret_cast<glm::uint32_t*>(gColorBuffer);
     *pitch = gSGL.colorBufferPitch;
 }
 
@@ -117,22 +117,20 @@ void drawTriangle(const Vertex &A, const Vertex &B, const Vertex &C) {
 
                     uint32_t idx = x + y*gSGL.bufferSize.x;
                     if (gIsDepthTestEnabled && depth <= gDepthBuffer[idx]) { // TODO: add support other compare functions
-                        glm::u8vec4 color;
+                        glm::u8vec4 &color = gColorBuffer[idx];
                         color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
                         color.g = (bcScreenU*B.color.g + bcScreenV*C.color.g + bcScreenW*A.color.g);
                         color.b = (bcScreenU*B.color.b + bcScreenV*C.color.b + bcScreenW*A.color.b);
                         color.a = (bcScreenU*B.color.a + bcScreenV*C.color.a + bcScreenW*A.color.a);
-                        memcpy(gColorBuffer + idx, &color, sizeof(color));
 
                         gDepthBuffer[idx] = depth;
                     }
                     else if (!gIsDepthTestEnabled) {
-                        glm::u8vec4 color;
+                        glm::u8vec4 &color = gColorBuffer[idx];
                         color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
                         color.g = (bcScreenU*B.color.g + bcScreenV*C.color.g + bcScreenW*A.color.g);
                         color.b = (bcScreenU*B.color.b + bcScreenV*C.color.b + bcScreenW*A.color.b);
                         color.a = (bcScreenU*B.color.a + bcScreenV*C.color.a + bcScreenW*A.color.a);
-                        memcpy(gColorBuffer + idx, &color, sizeof(color));
                     }
                 }
             }
