@@ -185,19 +185,24 @@ void glEnd() {
     gImROP->triangles.reserve(gImROP->triangles.size() + (gImVerts.size() / 3));
     for (size_t i = 0; i < gImVerts.size(); i += 3) {
         Triangle triangle;
-        triangle.A = gImVerts[i + 0];
-        triangle.B = gImVerts[i + 1];
-        triangle.C = gImVerts[i + 2];
-        triangle.invAz = 1.0f / triangle.A.pos.z;
-        triangle.invBz = 1.0f / triangle.B.pos.z;
-        triangle.invCz = 1.0f / triangle.C.pos.z;
-        triangle.AB = triangle.B.pos - triangle.A.pos;
-        triangle.AC = triangle.C.pos - triangle.A.pos;
+        triangle.Apos = gImVerts[i + 0].pos;
+        triangle.Bpos = gImVerts[i + 1].pos;
+        triangle.Cpos = gImVerts[i + 2].pos;
+        triangle.Acolor = gImVerts[i + 0].color;
+        triangle.Bcolor = gImVerts[i + 1].color;
+        triangle.Ccolor = gImVerts[i + 2].color;
+        triangle.invABCz = glm::vec3(
+            1.0f / triangle.Apos.z,
+            1.0f / triangle.Bpos.z,
+            1.0f / triangle.Cpos.z
+        );
+        triangle.AB = triangle.Bpos - triangle.Apos;
+        triangle.AC = triangle.Cpos - triangle.Apos;
         triangle.bcW = triangle.AB.x*triangle.AC.y - triangle.AC.x*triangle.AB.y;
         if (std::abs(triangle.bcW) >= 1.0f) {
             triangle.bcInvW = 1.0f / triangle.bcW;
-            triangle.min = glm::min(triangle.A.pos, triangle.B.pos, triangle.C.pos);
-            triangle.max = glm::max(triangle.A.pos, triangle.B.pos, triangle.C.pos);
+            triangle.min = glm::min(triangle.Apos, triangle.Bpos, triangle.Cpos);
+            triangle.max = glm::max(triangle.Apos, triangle.Bpos, triangle.Cpos);
 
             gImROP->triangles.emplace_back(std::move(triangle));
 

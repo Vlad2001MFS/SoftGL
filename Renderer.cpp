@@ -83,41 +83,40 @@ void opDraw(const RenderOp &rop) {
 
     for (int y = min.y; y <= max.y; y++) {
         for (const auto &tri : desc.triangles) {
-            const int PAy = tri.A.pos.y - y;
+            const int PAy = tri.Apos.y - y;
 
             const int minX = glm::clamp(tri.min.x, gVPMin.x, gVPMax.x);
             const int maxX = glm::clamp(tri.max.x, gVPMin.x, gVPMax.x);
             for (int x = minX; x <= maxX; x++) {
-                const int PAx = tri.A.pos.x - x;
+                const int PAx = tri.Apos.x - x;
 
                 const float bcScreenU = (tri.AC.x*PAy - PAx*tri.AC.y)*tri.bcInvW;
                 const float bcScreenV = (PAx*tri.AB.y - tri.AB.x*PAy)*tri.bcInvW;
                 const float bcScreenW = 1.0f - bcScreenU - bcScreenV;
 
                 if (bcScreenU >= 0 && bcScreenV >= 0 && bcScreenW >= 0) {
-                    float bcClipU = bcScreenU*tri.invAz;
-                    float bcClipV = bcScreenV*tri.invBz;
-                    float bcClipW = bcScreenW*tri.invCz;
+                    float bcClipU = bcScreenU*tri.invABCz.x;
+                    float bcClipV = bcScreenV*tri.invABCz.y;
+                    float bcClipW = bcScreenW*tri.invABCz.z;
 
                     const float bcClipUVW = 1.0f / (bcClipU + bcClipV + bcClipW);
                     bcClipU *= bcClipUVW; // perspective-correct
                     bcClipV *= bcClipUVW;
                     bcClipW *= bcClipUVW;
 
-                    const float depth = bcClipU*tri.B.pos.z + bcClipV*tri.C.pos.z + bcClipW*tri.A.pos.z;
-
                     const uint32_t idx = x + y*gBufferSize.x;
                     if (gIsDepthTest) {
+                        const float depth = bcClipU*tri.Bpos.z + bcClipV*tri.Cpos.z + bcClipW*tri.Apos.z;
                         if (!compareFunc(gDepthFunc, depth, gDepthBuffer[idx])) {
                             continue;
                         }
                         gDepthBuffer[idx] = depth;
                     }
 
-                    gColorBuffer[idx].r = (bcScreenU*tri.B.color.r + bcScreenV*tri.C.color.r + bcScreenW*tri.A.color.r);
-                    gColorBuffer[idx].g = (bcScreenU*tri.B.color.g + bcScreenV*tri.C.color.g + bcScreenW*tri.A.color.g);
-                    gColorBuffer[idx].b = (bcScreenU*tri.B.color.b + bcScreenV*tri.C.color.b + bcScreenW*tri.A.color.b);
-                    gColorBuffer[idx].a = (bcScreenU*tri.B.color.a + bcScreenV*tri.C.color.a + bcScreenW*tri.A.color.a);
+                    gColorBuffer[idx].r = (bcScreenU*tri.Bcolor.r + bcScreenV*tri.Ccolor.r + bcScreenW*tri.Acolor.r);
+                    gColorBuffer[idx].g = (bcScreenU*tri.Bcolor.g + bcScreenV*tri.Ccolor.g + bcScreenW*tri.Acolor.g);
+                    gColorBuffer[idx].b = (bcScreenU*tri.Bcolor.b + bcScreenV*tri.Ccolor.b + bcScreenW*tri.Acolor.b);
+                    gColorBuffer[idx].a = (bcScreenU*tri.Bcolor.a + bcScreenV*tri.Ccolor.a + bcScreenW*tri.Acolor.a);
                 }
             }
         }

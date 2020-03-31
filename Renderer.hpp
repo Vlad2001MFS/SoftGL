@@ -1,5 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
+#include "glm/ext.hpp"
 #include <vector>
 #include <functional>
 
@@ -26,12 +27,13 @@ struct Vertex {
 };
 
 struct Triangle {
-    Vertex A, B, C;
+    glm::vec3 Apos, Bpos, Cpos;
+    glm::u8vec4 Acolor, Bcolor, Ccolor;
     glm::ivec2 AB, AC;
     glm::ivec2 min, max;
     int bcW;
     float bcInvW;
-    float invAz, invBz, invCz;
+    glm::vec3 invABCz;
 };
 
 struct ViewportOp {
