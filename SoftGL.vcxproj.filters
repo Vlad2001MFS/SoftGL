@@ -5,10 +5,12 @@
     <ClCompile Include="GL.cpp" />
     <ClCompile Include="Internal.cpp" />
     <ClCompile Include="SGL.cpp" />
+    <ClCompile Include="Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GL.hpp" />
     <ClInclude Include="Internal.hpp" />
     <ClInclude Include="SGL.hpp" />
+    <ClInclude Include="Renderer.hpp" />
   </ItemGroup>
 </Project>

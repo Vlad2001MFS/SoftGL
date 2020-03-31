@@ -15,7 +15,7 @@ SDL_Renderer *gRenderer = nullptr;
 SDL_Texture *gTarget = nullptr;
 
 void initialize() {
-    glShadeModel(GL_SMOOTH);
+    //glShadeModel(GL_SMOOTH);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClearDepth(1.0f);
@@ -131,9 +131,12 @@ int main(int argc, char **argv) {
         
         update(frameTime);
 
+        sglExecuteAll();
+
         uint32_t *colorBuffer = nullptr;
         int colorBufferPitch = 0;
         sglGetColorBuffer(&colorBuffer, &colorBufferPitch);
+
         SDL_UpdateTexture(gTarget, nullptr, colorBuffer, colorBufferPitch);
         SDL_RenderCopy(gRenderer, gTarget, nullptr, nullptr);
         SDL_RenderPresent(gRenderer);

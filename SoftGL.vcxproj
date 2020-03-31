@@ -174,11 +174,13 @@
     <ClCompile Include="GL.cpp" />
     <ClCompile Include="Internal.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GL.hpp" />
     <ClInclude Include="Internal.hpp" />
+    <ClInclude Include="Renderer.hpp" />
     <ClInclude Include="SGL.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

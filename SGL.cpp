@@ -1,5 +1,6 @@
 #include "SGL.hpp"
 #include "Internal.hpp"
+#include "Renderer.hpp"
 #include <vector>
 
 struct {
@@ -23,4 +24,8 @@ void sglUpdateBuffers(int w, int h) {
 void sglGetColorBuffer(uint32_t **colorBuffer, int *pitch) {
     *colorBuffer = reinterpret_cast<glm::uint32_t*>(gColorBuffer);
     *pitch = gColorBufferPitch;
+}
+
+void sglExecuteAll() {
+    executeRenderOps();
 }

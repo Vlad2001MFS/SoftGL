@@ -5,9 +5,6 @@
 #define GL_MODELVIEW 0x1700
 #define GL_PROJECTION 0x1701
 
-#define GL_FLAT 0x1D00
-#define GL_SMOOTH 0x1D01
-
 #define GL_DEPTH_BUFFER_BIT 0x00000100
 #define GL_COLOR_BUFFER_BIT 0x00004000
 
@@ -32,8 +29,6 @@ void glLoadMatrixf(const float *mat);
 void glTranslatef(float x, float y, float z);
 void glRotatef(float angle, float x, float y, float z);
 void glScalef(float x, float y, float z);
-
-void glShadeModel(int mode);
 
 void glClearColor(float r, float g, float b, float a);
 void glClearDepth(float depth);
