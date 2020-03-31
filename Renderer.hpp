@@ -25,6 +25,15 @@ struct Vertex {
     glm::u8vec4 color;
 };
 
+struct Triangle {
+    Vertex A, B, C;
+    glm::ivec2 AB, AC;
+    glm::ivec2 min, max;
+    int bcW;
+    float bcInvW;
+    float invAz, invBz, invCz;
+};
+
 struct ViewportOp {
     glm::ivec2 min;
     glm::ivec2 max;
@@ -48,7 +57,9 @@ struct DepthFuncOp {
 
 struct DrawOp {
     PrimType primType;
-    std::vector<Vertex> verts;
+    std::vector<Triangle> triangles;
+    glm::ivec2 min = glm::ivec2(std::numeric_limits<int>::max());
+    glm::ivec2 max = glm::ivec2(std::numeric_limits<int>::min());
 };
 
 enum class ROPType {

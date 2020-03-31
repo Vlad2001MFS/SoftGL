@@ -17,6 +17,7 @@ uint32_t gClearColor = 0;
 float gClearDepth = 1.0f;
 
 int gImMode = 0;
+int gImQuadVertsCounter = 0;
 std::vector<Vertex> gImVerts;
 DrawOp *gImROP = nullptr;
 glm::u8vec4 gImCurrentColor = glm::u8vec4(255, 255, 255, 255);
@@ -128,6 +129,7 @@ void glDepthFunc(int func) {
 
 void glBegin(int mode) {
     gImMode = mode;
+    gImQuadVertsCounter = 0;
     gImVerts.clear();
 
     PrimType primType;
@@ -150,6 +152,19 @@ void glVertex3f(float x, float y, float z) {
     v.pos = glm::vec3(x, y, z);
     v.color = gImCurrentColor;
     gImVerts.push_back(v);
+
+    if (gImMode == GL_QUADS) {
+        gImQuadVertsCounter++;
+        if (gImQuadVertsCounter == 3) {
+            int vert4Idx = gImVerts.size() - 3;
+            int vert5Idx = gImVerts.size() - 1;
+            gImVerts.push_back(gImVerts[vert4Idx]);
+            gImVerts.push_back(gImVerts[vert5Idx]);
+        }
+        else if (gImQuadVertsCounter == 4) {
+            gImQuadVertsCounter = 0;
+        }
+    }
 }
 
 void glColor3f(float r, float g, float b) {
@@ -157,7 +172,7 @@ void glColor3f(float r, float g, float b) {
 }
 
 void glEnd() {
-    glm::mat4 mvp = gProjMat*gModelViewMat;
+    const glm::mat4 mvp = gProjMat*gModelViewMat;
     for (auto &vert : gImVerts) {
         glm::vec4 v = mvp*glm::vec4(vert.pos, 1.0f);
         vert.pos = glm::vec3(v) / v.w;
@@ -167,19 +182,27 @@ void glEnd() {
         vert.pos.y = static_cast<int>(gVPPos.y + vert.pos.y*gVPSize.y);
     }
 
-    if (gImMode == GL_TRIANGLES) {
-        gImROP->verts = gImVerts;
-    }
-    else if (gImMode == GL_QUADS) {
-        gImROP->verts.reserve(gImVerts.size()*6 / 4);
-        for (int i = 0; i < gImVerts.size(); i += 4) {
-            gImROP->verts.emplace_back(std::move(gImVerts[i + 0]));
-            gImROP->verts.emplace_back(std::move(gImVerts[i + 1]));
-            gImROP->verts.emplace_back(std::move(gImVerts[i + 2]));
+    gImROP->triangles.reserve(gImROP->triangles.size() + (gImVerts.size() / 3));
+    for (size_t i = 0; i < gImVerts.size(); i += 3) {
+        Triangle triangle;
+        triangle.A = gImVerts[i + 0];
+        triangle.B = gImVerts[i + 1];
+        triangle.C = gImVerts[i + 2];
+        triangle.invAz = 1.0f / triangle.A.pos.z;
+        triangle.invBz = 1.0f / triangle.B.pos.z;
+        triangle.invCz = 1.0f / triangle.C.pos.z;
+        triangle.AB = triangle.B.pos - triangle.A.pos;
+        triangle.AC = triangle.C.pos - triangle.A.pos;
+        triangle.bcW = triangle.AB.x*triangle.AC.y - triangle.AC.x*triangle.AB.y;
+        if (std::abs(triangle.bcW) >= 1.0f) {
+            triangle.bcInvW = 1.0f / triangle.bcW;
+            triangle.min = glm::min(triangle.A.pos, triangle.B.pos, triangle.C.pos);
+            triangle.max = glm::max(triangle.A.pos, triangle.B.pos, triangle.C.pos);
 
-            gImROP->verts.emplace_back(std::move(gImVerts[i + 0]));
-            gImROP->verts.emplace_back(std::move(gImVerts[i + 2]));
-            gImROP->verts.emplace_back(std::move(gImVerts[i + 3]));
+            gImROP->triangles.emplace_back(std::move(triangle));
+
+            gImROP->min = glm::min(gImROP->min, triangle.min);
+            gImROP->max = glm::max(gImROP->max, triangle.max);
         }
     }
 }

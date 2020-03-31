@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "Internal.hpp"
 #include "glm/ext.hpp"
+#include <algorithm>
 
 std::vector<RenderOp> gRenderOps;
 
@@ -75,66 +76,48 @@ void opDepthFunc(const RenderOp &rop) {
 }
 
 void opDraw(const RenderOp &rop) {
-    auto &desc = rop.draw;
+    const auto &desc = rop.draw;
 
-    for (int i = 0; i < desc.verts.size(); i += 3) {
-        const Vertex &A = desc.verts[i + 0];
-        const Vertex &B = desc.verts[i + 1];
-        const Vertex &C = desc.verts[i + 2];
+    const glm::ivec2 min = glm::clamp(desc.min, gVPMin, gVPMax);
+    const glm::ivec2 max = glm::clamp(desc.max, gVPMin, gVPMax);
 
-        const int ABx = B.pos.x - A.pos.x;
-        const int ACx = C.pos.x - A.pos.x;
+    for (int y = min.y; y <= max.y; y++) {
+        for (const auto &tri : desc.triangles) {
+            const int PAy = tri.A.pos.y - y;
 
-        const int ABy = B.pos.y - A.pos.y;
-        const int ACy = C.pos.y - A.pos.y;
+            const int minX = glm::clamp(tri.min.x, gVPMin.x, gVPMax.x);
+            const int maxX = glm::clamp(tri.max.x, gVPMin.x, gVPMax.x);
+            for (int x = minX; x <= maxX; x++) {
+                const int PAx = tri.A.pos.x - x;
 
-        const int w = ABx*ACy - ACx*ABy;
-        if (glm::abs(w) >= 1.0f) {
-            const float invW = 1.0f / w;
+                const float bcScreenU = (tri.AC.x*PAy - PAx*tri.AC.y)*tri.bcInvW;
+                const float bcScreenV = (PAx*tri.AB.y - tri.AB.x*PAy)*tri.bcInvW;
+                const float bcScreenW = 1.0f - bcScreenU - bcScreenV;
 
-            const glm::ivec2 min = glm::clamp(glm::min<glm::ivec2>(A.pos, B.pos, C.pos), gVPMin, gVPMax);
-            const glm::ivec2 max = glm::clamp(glm::max<glm::ivec2>(A.pos, B.pos, C.pos), gVPMin, gVPMax);
+                if (bcScreenU >= 0 && bcScreenV >= 0 && bcScreenW >= 0) {
+                    float bcClipU = bcScreenU*tri.invAz;
+                    float bcClipV = bcScreenV*tri.invBz;
+                    float bcClipW = bcScreenW*tri.invCz;
 
-            for (int y = min.y; y <= max.y; y++) {
-                const int PAy = A.pos.y - y;
+                    const float bcClipUVW = 1.0f / (bcClipU + bcClipV + bcClipW);
+                    bcClipU *= bcClipUVW; // perspective-correct
+                    bcClipV *= bcClipUVW;
+                    bcClipW *= bcClipUVW;
 
-                for (int x = min.x; x <= max.x; x++) {
-                    const int PAx = A.pos.x - x;
+                    const float depth = bcClipU*tri.B.pos.z + bcClipV*tri.C.pos.z + bcClipW*tri.A.pos.z;
 
-                    const float bcScreenU = (ACx*PAy - PAx*ACy)*invW;
-                    const float bcScreenV = (PAx*ABy - ABx*PAy)*invW;
-                    const float bcScreenW = 1.0f - bcScreenU - bcScreenV;
-
-                    if (bcScreenU >= 0 && bcScreenV >= 0 && bcScreenW >= 0) {
-                        float bcClipU = bcScreenU / B.pos.z;
-                        float bcClipV = bcScreenV / C.pos.z;
-                        float bcClipW = bcScreenW / A.pos.z;
-
-                        const float bcClipUVW = bcClipU + bcClipV + bcClipW;
-                        bcClipU /= bcClipUVW; // perspective-correct
-                        bcClipV /= bcClipUVW;
-                        bcClipW /= bcClipUVW;
-
-                        const float depth = bcClipU*B.pos.z + bcClipV*C.pos.z + bcClipW*A.pos.z;
-
-                        uint32_t idx = x + y*gBufferSize.x;
-                        if (gIsDepthTest && compareFunc(gDepthFunc, depth, gDepthBuffer[idx])) {
-                            glm::u8vec4 &color = gColorBuffer[idx];
-                            color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
-                            color.g = (bcScreenU*B.color.g + bcScreenV*C.color.g + bcScreenW*A.color.g);
-                            color.b = (bcScreenU*B.color.b + bcScreenV*C.color.b + bcScreenW*A.color.b);
-                            color.a = (bcScreenU*B.color.a + bcScreenV*C.color.a + bcScreenW*A.color.a);
-
-                            gDepthBuffer[idx] = depth;
+                    const uint32_t idx = x + y*gBufferSize.x;
+                    if (gIsDepthTest) {
+                        if (!compareFunc(gDepthFunc, depth, gDepthBuffer[idx])) {
+                            continue;
                         }
-                        else if (!gIsDepthTest) {
-                            glm::u8vec4 &color = gColorBuffer[idx];
-                            color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
-                            color.g = (bcScreenU*B.color.g + bcScreenV*C.color.g + bcScreenW*A.color.g);
-                            color.b = (bcScreenU*B.color.b + bcScreenV*C.color.b + bcScreenW*A.color.b);
-                            color.a = (bcScreenU*B.color.a + bcScreenV*C.color.a + bcScreenW*A.color.a);
-                        }
+                        gDepthBuffer[idx] = depth;
                     }
+
+                    gColorBuffer[idx].r = (bcScreenU*tri.B.color.r + bcScreenV*tri.C.color.r + bcScreenW*tri.A.color.r);
+                    gColorBuffer[idx].g = (bcScreenU*tri.B.color.g + bcScreenV*tri.C.color.g + bcScreenW*tri.A.color.g);
+                    gColorBuffer[idx].b = (bcScreenU*tri.B.color.b + bcScreenV*tri.C.color.b + bcScreenW*tri.A.color.b);
+                    gColorBuffer[idx].a = (bcScreenU*tri.B.color.a + bcScreenV*tri.C.color.a + bcScreenW*tri.A.color.a);
                 }
             }
         }
