@@ -1,43 +1,9 @@
-#include "SoftGL.hpp"
+#include "GL.hpp"
+#include "Internal.hpp"
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 #include <vector>
 #include <intrin.h>
-
-// ***********************************************************************************************************
-// ****************************************** SoftGL System Wrapper ******************************************
-// ***********************************************************************************************************
-
-struct {
-    glm::ivec2 bufferSize, surfaceMin, surfaceMax;
-    int colorBufferPitch;
-    std::vector<uint32_t> colorBuffer;
-    std::vector<float> depthBuffer;
-} gSGL;
-
-glm::u8vec4 *gColorBuffer = nullptr;
-float *gDepthBuffer = nullptr;
-
-void sglUpdateBuffers(int w, int h) {
-    gSGL.bufferSize = glm::ivec2(w, h);
-    gSGL.surfaceMin = glm::ivec2(0, 0);
-    gSGL.surfaceMax = glm::ivec2(w - 1, h - 1);
-    gSGL.colorBufferPitch = sizeof(uint32_t)*w;
-    gSGL.colorBuffer.resize(w*h);
-    gColorBuffer = reinterpret_cast<glm::u8vec4*>(gSGL.colorBuffer.data());
-
-    gSGL.depthBuffer.resize(w*h);
-    gDepthBuffer = gSGL.depthBuffer.data();
-}
-
-void sglGetColorBuffer(uint32_t **colorBuffer, int *pitch) {
-    *colorBuffer = reinterpret_cast<glm::uint32_t*>(gColorBuffer);
-    *pitch = gSGL.colorBufferPitch;
-}
-
-// ***********************************************************************************************************
-// ****************************************** SoftGL Implementation ******************************************
-// ***********************************************************************************************************
 
 struct {
     glm::ivec2 pos = glm::ivec2(0, 0);
@@ -145,7 +111,7 @@ void drawTriangle(const Vertex &A, const Vertex &B, const Vertex &C) {
 
                     const float depth = bcClipU*B.pos.z + bcClipV*C.pos.z + bcClipW*A.pos.z;
 
-                    uint32_t idx = x + y*gSGL.bufferSize.x;
+                    uint32_t idx = x + y*gBufferSize.x;
                     if (gIsDepthTestEnabled && compareFunc(gDepthFunc, depth, gDepthBuffer[idx])) {
                         glm::u8vec4 &color = gColorBuffer[idx];
                         color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
@@ -173,8 +139,8 @@ void glViewport(int x, int y, int w, int h) {
     gVP.pos.y = y;
     gVP.size.x = w;
     gVP.size.y = h;
-    gVP.min = glm::max(gVP.pos, gSGL.surfaceMin);
-    gVP.max = glm::min(gVP.pos + gVP.size - 1, gSGL.surfaceMax);
+    gVP.min = glm::max(gVP.pos, gSurfaceMin);
+    gVP.max = glm::min(gVP.pos + gVP.size - 1, gSurfaceMax);
 }
 
 void glMatrixMode(int mode) {
@@ -215,12 +181,12 @@ void glClearDepth(float depth) {
 
 void glClear(int mask) {
     if ((mask & GL_COLOR_BUFFER_BIT) == GL_COLOR_BUFFER_BIT) {
-        for (int y = 0; y < gSGL.bufferSize.y; y++) {
-            __stosd(reinterpret_cast<unsigned long*>(gColorBuffer + y*gSGL.bufferSize.x), gClearColor, gSGL.bufferSize.x);
+        for (int y = 0; y < gBufferSize.y; y++) {
+            __stosd(reinterpret_cast<unsigned long*>(gColorBuffer + y*gBufferSize.x), gClearColor, gBufferSize.x);
         }
     }
     if ((mask & GL_DEPTH_BUFFER_BIT) == GL_DEPTH_BUFFER_BIT) {
-        for (int i = 0; i < gSGL.bufferSize.x*gSGL.bufferSize.y; i++) {
+        for (int i = 0; i < gBufferSize.x*gBufferSize.y; i++) {
             gDepthBuffer[i] = gClearDepth;
         }
     }

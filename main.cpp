@@ -1,4 +1,5 @@
-#include "SoftGL.hpp"
+#include "GL.hpp"
+#include "SGL.hpp"
 #include "SDL2/SDL.h"
 #include "fmt/format.h"
 #include "glm/glm.hpp"
@@ -43,15 +44,15 @@ void onEvent(const SDL_Event &event) {
     }
 }
 
-float gRotTri = 0.0f;
-float gRotQuad = 0.0f;
+//float gRotTri = 0.0f;
+//float gRotQuad = 0.0f;
 
 void update(float dt) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glLoadIdentity();
     glTranslatef(-1.5f, 0.0f, -6.0f);
-    glRotatef(gRotTri, 0.0f, 1.0f, 0.0f);
+    //glRotatef(gRotTri, 0.0f, 1.0f, 0.0f);
     glBegin(GL_TRIANGLES);
     glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f( 0.0f, 1.0f, 0.0f);  // Вверх
@@ -63,7 +64,7 @@ void update(float dt) {
 
     glLoadIdentity();
     glTranslatef(1.5f, 0.0f, -6.0f);
-    glRotatef(gRotQuad, 0.0f, 1.0f, 0.0f);
+    //glRotatef(gRotQuad, 0.0f, 1.0f, 0.0f);
     glColor3f(0.5f, 0.5f, 1.0f);
     glBegin(GL_QUADS);
     glVertex3f(-1.0f, 1.0f, 0.0f);  // Слева вверху
@@ -72,8 +73,8 @@ void update(float dt) {
     glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева внизу
     glEnd();
 
-    gRotTri += 0.2f;
-    gRotQuad -= 0.15f;
+    //gRotTri += 0.2f;
+    //gRotQuad -= 0.15f;
 }
 
 int main(int argc, char **argv) {
