@@ -2,26 +2,43 @@
 #include "Internal.hpp"
 #include "glm/ext.hpp"
 
-using CompareFuncSig = bool(*)(float lhs, float rhs);
-
-CompareFuncSig gCompareFuncsTable[static_cast<size_t>(CompareFunc::_Count)] = {
-    [](float lhs, float rhs){ return false;                                                 }, // Never
-    [](float lhs, float rhs){ return lhs < rhs;                                             }, // Less
-    [](float lhs, float rhs){ return glm::epsilonEqual(lhs, rhs, glm::epsilon<float>());    }, // Equal
-    [](float lhs, float rhs){ return lhs <= rhs;                                            }, // LessEqual
-    [](float lhs, float rhs){ return lhs > rhs;                                             }, // Greater
-    [](float lhs, float rhs){ return glm::epsilonNotEqual(lhs, rhs, glm::epsilon<float>()); }, // NotEqual
-    [](float lhs, float rhs){ return lhs >= rhs;                                            }, // GreaterEqual
-    [](float lhs, float rhs){ return true;                                                  }, // Always
-};
-
 std::vector<RenderOp> gRenderOps;
 
 glm::ivec2 gVPMin = glm::ivec2(0, 0);
 glm::ivec2 gVPMax = glm::ivec2(0, 0);
 
 bool gIsDepthTest = false;
-CompareFuncSig gDepthFunc = gCompareFuncsTable[static_cast<size_t>(CompareFunc::Less)];
+CompareFunc gDepthFunc = CompareFunc::Less;
+
+template<typename T>
+__forceinline bool compareFunc(CompareFunc func, T lhs, T rhs) {
+    switch (func) {
+        case CompareFunc::Never: {
+            return false;
+        }
+        case CompareFunc::Less: {
+            return lhs < rhs;
+        }
+        case CompareFunc::Equal: {
+            return glm::epsilonEqual(lhs, rhs, glm::epsilon<float>());
+        }
+        case CompareFunc::LessEqual: {
+            return lhs <= rhs;
+        }
+        case CompareFunc::Greater: {
+            return lhs > rhs;
+        }
+        case CompareFunc::NotEqual: {
+            return glm::epsilonNotEqual(lhs, rhs, glm::epsilon<float>());
+        }
+        case CompareFunc::GreaterEqual: {
+            return lhs >= rhs;
+        }
+        case CompareFunc::Always: {
+            return true;
+        }
+    }
+}
 
 void opViewport(const RenderOp &rop) {
     auto &desc = rop.viewport;
@@ -54,7 +71,7 @@ void opEnable(const RenderOp &rop) {
 void opDepthFunc(const RenderOp &rop) {
     auto &desc = rop.depthFunc;
 
-    gDepthFunc = gCompareFuncsTable[static_cast<size_t>(desc.func)];
+    gDepthFunc = desc.func;
 }
 
 void opDraw(const RenderOp &rop) {
@@ -101,7 +118,7 @@ void opDraw(const RenderOp &rop) {
                         const float depth = bcClipU*B.pos.z + bcClipV*C.pos.z + bcClipW*A.pos.z;
 
                         uint32_t idx = x + y*gBufferSize.x;
-                        if (gIsDepthTest && gDepthFunc(depth, gDepthBuffer[idx])) {
+                        if (gIsDepthTest && compareFunc(gDepthFunc, depth, gDepthBuffer[idx])) {
                             glm::u8vec4 &color = gColorBuffer[idx];
                             color.r = (bcScreenU*B.color.r + bcScreenV*C.color.r + bcScreenW*A.color.r);
                             color.g = (bcScreenU*B.color.g + bcScreenV*C.color.g + bcScreenW*A.color.g);
