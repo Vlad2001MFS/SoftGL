@@ -6,14 +6,6 @@
 #include "glm/ext.hpp"
 #include <vector>
 
-constexpr auto WND_TITLE = "SoftGL Demo";
-constexpr auto WND_WIDTH = 1024;
-constexpr auto WND_HEIGHT = 768;
-
-SDL_Window *gWindow = nullptr;
-SDL_Renderer *gRenderer = nullptr;
-SDL_Texture *gTarget = nullptr;
-
 void initialize() {
     //glShadeModel(GL_SMOOTH);
 
@@ -44,38 +36,99 @@ void onEvent(const SDL_Event &event) {
     }
 }
 
-//float gRotTri = 0.0f;
-//float gRotQuad = 0.0f;
+float gRotTri = 0.0f;
+float gRotQuad = 0.0f;
 
 void update(float dt) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glLoadIdentity();
     glTranslatef(-1.5f, 0.0f, -6.0f);
-    //glRotatef(gRotTri, 0.0f, 1.0f, 0.0f);
+    glRotatef(gRotTri, 0.0f, 1.0f, 0.0f);
     glBegin(GL_TRIANGLES);
-    glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f( 0.0f, 1.0f, 0.0f);  // Вверх
-    glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева снизу
-    glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа снизу
+        glColor3f(1.0f,0.0f,0.0f);                      // Красный
+        glVertex3f( 0.0f, 1.0f, 0.0f);                  // Верх треугольника (Передняя)
+        glColor3f(0.0f,1.0f,0.0f);                      // Зеленный
+        glVertex3f(-1.0f,-1.0f, 1.0f);                  // Левая точка
+        glColor3f(0.0f,0.0f,1.0f);                      // Синий
+        glVertex3f( 1.0f,-1.0f, 1.0f);                  // Правая точка
+
+        glColor3f(1.0f,0.0f,0.0f);                      // Красная
+        glVertex3f( 0.0f, 1.0f, 0.0f);                  // Верх треугольника (Правая)
+        glColor3f(0.0f,0.0f,1.0f);                      // Синия
+        glVertex3f( 1.0f,-1.0f, 1.0f);                  // Лево треугольника (Правая)
+        glColor3f(0.0f,1.0f,0.0f);                      // Зеленная
+        glVertex3f( 1.0f,-1.0f, -1.0f);                 // Право треугольника (Правая)
+
+        glColor3f(1.0f,0.0f,0.0f);                      // Красный
+        glVertex3f( 0.0f, 1.0f, 0.0f);                  // Низ треугольника (Сзади)
+        glColor3f(0.0f,1.0f,0.0f);                      // Зеленный
+        glVertex3f( 1.0f,-1.0f, -1.0f);                 // Лево треугольника (Сзади)
+        glColor3f(0.0f,0.0f,1.0f);                      // Синий
+        glVertex3f(-1.0f,-1.0f, -1.0f);                 // Право треугольника (Сзади)
+
+        glColor3f(1.0f,0.0f,0.0f);                      // Красный
+        glVertex3f( 0.0f, 1.0f, 0.0f);                  // Верх треугольника (Лево)
+        glColor3f(0.0f,0.0f,1.0f);                      // Синий
+        glVertex3f(-1.0f,-1.0f,-1.0f);                  // Лево треугольника (Лево)
+        glColor3f(0.0f,1.0f,0.0f);                      // Зеленный
+        glVertex3f(-1.0f,-1.0f, 1.0f);                  // Право треугольника (Лево)
     glEnd();
 
     glLoadIdentity();
-    glTranslatef(1.5f, 0.0f, -6.0f);
-    //glRotatef(gRotQuad, 0.0f, 1.0f, 0.0f);
-    glColor3f(0.5f, 0.5f, 1.0f);
+    glTranslatef(1.5f, 0.0f, -7.0f);
+    glRotatef(gRotQuad, 1.0f, 1.0f, 1.0f);
     glBegin(GL_QUADS);
-    glVertex3f(-1.0f, 1.0f, 0.0f);  // Слева вверху
-    glVertex3f( 1.0f, 1.0f, 0.0f);  // Справа вверху
-    glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа внизу
-    glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева внизу
+        glColor3f(0.0f,1.0f,0.0f);              // Синий
+        glVertex3f( 1.0f, 1.0f,-1.0f);          // Право верх квадрата (Верх)
+        glVertex3f(-1.0f, 1.0f,-1.0f);          // Лево верх
+        glVertex3f(-1.0f, 1.0f, 1.0f);          // Лево низ
+        glVertex3f( 1.0f, 1.0f, 1.0f);          // Право низ
+
+        glColor3f(1.0f,0.5f,0.0f);              // Оранжевый
+        glVertex3f( 1.0f,-1.0f, 1.0f);          // Верх право квадрата (Низ)
+        glVertex3f(-1.0f,-1.0f, 1.0f);          // Верх лево
+        glVertex3f(-1.0f,-1.0f,-1.0f);          // Низ лево
+        glVertex3f( 1.0f,-1.0f,-1.0f);          // Низ право
+
+        glColor3f(1.0f,0.0f,0.0f);              // Красный
+        glVertex3f( 1.0f, 1.0f, 1.0f);          // Верх право квадрата (Перед)
+        glVertex3f(-1.0f, 1.0f, 1.0f);          // Верх лево
+        glVertex3f(-1.0f,-1.0f, 1.0f);          // Низ лево
+        glVertex3f( 1.0f,-1.0f, 1.0f);          // Низ право
+
+        glColor3f(1.0f,1.0f,0.0f);              // Желтый
+        glVertex3f( 1.0f,-1.0f,-1.0f);          // Верх право квадрата (Зад)
+        glVertex3f(-1.0f,-1.0f,-1.0f);          // Верх лево
+        glVertex3f(-1.0f, 1.0f,-1.0f);          // Низ лево
+        glVertex3f( 1.0f, 1.0f,-1.0f);          // Низ право
+
+        glColor3f(0.0f,0.0f,1.0f);              // Синий
+        glVertex3f(-1.0f, 1.0f, 1.0f);          // Верх право квадрата (Лево)
+        glVertex3f(-1.0f, 1.0f, -1.0f);          // Верх лево
+        glVertex3f(-1.0f, -1.0f, -1.0f);          // Низ лево
+        glVertex3f(-1.0f, -1.0f, 1.0f);          // Низ право
+
+        glColor3f(1.0f, 0.0f, 1.0f);              // Фиолетовый
+        glVertex3f(1.0f, 1.0f, -1.0f);          // Верх право квадрата (Право)
+        glVertex3f(1.0f, 1.0f, 1.0f);          // Верх лево
+        glVertex3f(1.0f, -1.0f, 1.0f);          // Низ лево
+        glVertex3f(1.0f, -1.0f, -1.0f);          // Низ право
     glEnd();
 
-    //gRotTri += 0.2f;
-    //gRotQuad -= 0.15f;
+    gRotTri += 0.2f;
+    gRotQuad -= 0.15f;
 }
+
+//#define BENCH_NAME "Unknown"
+
+constexpr auto WND_TITLE = "SoftGL Demo";
+constexpr auto WND_WIDTH = 1024;
+constexpr auto WND_HEIGHT = 768;
+
+SDL_Window *gWindow = nullptr;
+SDL_Renderer *gRenderer = nullptr;
+SDL_Texture *gTarget = nullptr;
 
 int main(int argc, char **argv) {
     SDL_Init(SDL_INIT_VIDEO);
@@ -101,6 +154,14 @@ int main(int argc, char **argv) {
     double frameTime = 0;
     double totalFrameTime = 0;
     uint32_t totalFrameTimeCount = 0;
+
+#ifdef BENCH_NAME
+    struct {
+        size_t framesCount = 0;
+        double totalFrameTime = 0.0;
+    } stats;
+    uint64_t benchTimer = SDL_GetPerformanceCounter();
+#endif
 
     bool isExit = false;
     while (!isExit) {
@@ -128,7 +189,7 @@ int main(int argc, char **argv) {
 
             onEvent(event);
         }
-        
+
         update(frameTime);
 
         sglExecuteAll();
@@ -152,7 +213,27 @@ int main(int argc, char **argv) {
 
         totalFrameTime += frameTime;
         totalFrameTimeCount++;
+
+#ifdef BENCH_NAME
+        stats.totalFrameTime += frameTime;
+        stats.framesCount++;
+
+        if ((((double)SDL_GetPerformanceCounter() - benchTimer) / perfCounterFreq) > 30.0/*seconds*/) {
+            break;
+        }
+#endif
     }
+
+#ifdef BENCH_NAME
+    FILE *f = fopen("stats.txt", "a");
+    double avgFrameTime = stats.totalFrameTime / stats.framesCount;
+    double avgFPS = 1.0 / avgFrameTime;
+    fmt::print(f, "####################################\n");
+    fmt::print(f, "NAME: >>> {} <<<\n", BENCH_NAME);
+    fmt::print(f, "Average frameTime: {} ms\n", avgFrameTime*1000.0);
+    fmt::print(f, "Average FPS: {}\n", avgFPS);
+    fclose(f);
+#endif
 
     shutdown();
 
