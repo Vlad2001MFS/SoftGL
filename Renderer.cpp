@@ -78,16 +78,14 @@ void opDepthFunc(const RenderOp &rop) {
 void opDraw(const RenderOp &rop) {
     const auto &desc = rop.draw;
 
-    const glm::ivec2 min = glm::clamp(desc.min, gVPMin, gVPMax);
-    const glm::ivec2 max = glm::clamp(desc.max, gVPMin, gVPMax);
+    for (const auto &tri : desc.triangles) {
+        const glm::ivec2 min = glm::clamp(tri.min, gVPMin, gVPMax);
+        const glm::ivec2 max = glm::clamp(tri.max, gVPMin, gVPMax);
 
-    for (int y = min.y; y <= max.y; y++) {
-        for (const auto &tri : desc.triangles) {
+        for (int y = min.y; y <= max.y; y++) {
             const int PAy = tri.Apos.y - y;
 
-            const int minX = glm::clamp(tri.min.x, gVPMin.x, gVPMax.x);
-            const int maxX = glm::clamp(tri.max.x, gVPMin.x, gVPMax.x);
-            for (int x = minX; x <= maxX; x++) {
+            for (int x = min.x; x <= max.x; x++) {
                 const int PAx = tri.Apos.x - x;
 
                 const float bcScreenU = (tri.AC.x*PAy - PAx*tri.AC.y)*tri.bcInvW;
