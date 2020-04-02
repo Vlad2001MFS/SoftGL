@@ -151,6 +151,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Math.cpp" />
+    <ClCompile Include="VGL.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Math.hpp" />
+    <ClInclude Include="VGL.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
