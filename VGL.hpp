@@ -1,5 +1,9 @@
 #pragma once
 
-void vglResizeBuffers(int w, int h);
-void vglGetColorBuffer(void *&colorBuffer, int &pitch);
-void vglExecuteAll();
+struct GLContext;
+
+GLContext *vglContextCreate(int w, int h);
+void vglContextDestroy(GLContext *ctx);
+void vglContextMakeCurrent(GLContext *ctx);
+void vglContextResizeBuffers(GLContext *ctx, int w, int h);
+void vglContextGetColorBuffer(GLContext *ctx, void *&colorBuffer, int &pitch);

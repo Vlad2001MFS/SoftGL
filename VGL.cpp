@@ -1,31 +1,55 @@
 #include "VGL.hpp"
-#include "Math.hpp"
-#include <vector>
+#include "VGLInternal.hpp"
+#include "GLInternal.hpp"
+#include "Rasterizer.hpp"
 
-Vec2i gBufferSize = Vec2i(0, 0);
-Color *gColorBuffer = nullptr;
-float *gDepthBuffer = nullptr;
+GLContext *gCurrentContext = nullptr;
 
-static std::vector<Color> gColorBufferData;
-static std::vector<float> gDepthBufferData;
+GLContext::GLContext() {
+    this->bufferRect.set(0, 0, 0, 0);
+    this->state = createGLState();
+}
 
-void vglResizeBuffers(int w, int h) {
-    if (gBufferSize.x != w || gBufferSize.y != h) {
-        gBufferSize = Vec2i(w, h);
+GLContext::~GLContext() {
+    destroyGLState(this->state);
+}
 
-        gColorBufferData.resize(w*h);
-        gDepthBufferData.resize(w*h);
+GLContext *vglContextCreate(int w, int h) {
+    auto ctx = new GLContext();
+    vglContextResizeBuffers(ctx, w, h);
+    return ctx;
+}
 
-        gColorBuffer = gColorBufferData.data();
-        gDepthBuffer = gDepthBufferData.data();
+void vglContextDestroy(GLContext *ctx) {
+    if (gCurrentContext == ctx) {
+        vglContextMakeCurrent(nullptr);
+    }
+    delete ctx;
+}
+
+void vglContextMakeCurrent(GLContext *ctx) {
+    if (ctx) {
+        gCurrentContext = ctx;
+        gCurrentState = ctx->state;
+        rsSetFramebuffer(ctx->bufferRect, ctx->colorBufferData.data(), ctx->depthBufferData.data());
+    }
+    else {
+        gCurrentContext = nullptr;
+        gCurrentState = nullptr;
+        rsSetFramebuffer(IntRect(0, 0, 0, 0), nullptr, nullptr);
     }
 }
 
-void vglGetColorBuffer(void *&colorBuffer, int &pitch) {
-    colorBuffer = reinterpret_cast<void*>(gColorBuffer);
-    pitch = gBufferSize.x*sizeof(Color);
+void vglContextResizeBuffers(GLContext *ctx, int w, int h) {
+    auto size = ctx->bufferRect.getSize();
+    if (size.x != w || size.y != h) {
+        ctx->bufferRect.setSized(0, 0, w, h);
+        ctx->colorBufferData.resize(w*h);
+        ctx->depthBufferData.resize(w*h);
+    }
 }
 
-void vglExecuteAll() {
-
+void vglContextGetColorBuffer(GLContext *ctx, void *&colorBuffer, int &pitch) {
+    colorBuffer = ctx->colorBufferData.data();
+    pitch = ctx->bufferRect.getSize().x*sizeof(ctx->colorBufferData[0]);
 }

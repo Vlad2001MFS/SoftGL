@@ -151,11 +151,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GL.cpp" />
     <ClCompile Include="Math.cpp" />
+    <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="VGL.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GL.hpp" />
+    <ClInclude Include="GLInternal.hpp" />
+    <ClInclude Include="VGLInternal.hpp" />
     <ClInclude Include="Math.hpp" />
+    <ClInclude Include="Rasterizer.hpp" />
     <ClInclude Include="VGL.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
