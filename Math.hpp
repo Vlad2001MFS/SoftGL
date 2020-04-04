@@ -5,6 +5,10 @@
 #include <stdint.h>
 #include <memory.h>
 
+// ##################################################################################
+// ### Math library
+// ##################################################################################
+
 struct Math {
     static float deg(float rad) {
         return static_cast<float>(rad*180.0f / M_PI);
@@ -30,6 +34,10 @@ struct Math {
         return tanf(angle);
     }
 };
+
+// ##################################################################################
+// ### Color
+// ##################################################################################
 
 struct Color {
     Color() = default;
@@ -57,6 +65,10 @@ struct Color {
         uint32_t data;
     };
 };
+
+// ##################################################################################
+// ### Vec2
+// ##################################################################################
 
 template<typename T>
 struct Vec2 {
@@ -151,6 +163,10 @@ struct Vec2 {
 
 using Vec2i = Vec2<int>;
 using Vec2f = Vec2<float>;
+
+// ##################################################################################
+// ### Vec3
+// ##################################################################################
 
 template<typename T>
 struct Vec3 {
@@ -252,6 +268,120 @@ struct Vec3 {
 using Vec3i = Vec3<int>;
 using Vec3f = Vec3<float>;
 
+// ##################################################################################
+// ### Vec4
+// ##################################################################################
+
+template<typename T>
+struct Vec4 {
+    Vec4() = default;
+    Vec4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
+    Vec4(T xyzw) : x(xyzw), y(xyzw), z(xyzw), w(xyzw) {}
+
+    void set(T x, T y, T z, T w) {
+        this->x = x;
+        this->y = y;
+        this->z = z;
+        this->w = w;
+    }
+
+    float lengthSq() {
+        return this->x*this->x + this->y*this->y + this->z*this->z + this->w*this->w;
+    }
+
+    float length() {
+        return Math::sqrt(lengthSq());
+    }
+
+    void normalize() {
+        static_assert(std::is_floating_point_v<T>, "T must be floating point value");
+
+        float invLen = 1.0f / length();
+        this->x *= invLen;
+        this->y *= invLen;
+        this->z *= invLen;
+        this->w *= invLen;
+    }
+
+    Vec4 getNormalized() {
+        Vec4 v = *this;
+        v.normalize();
+        return v;
+    }
+
+    T operator[](int i) const {
+        return this->data[i];
+    }
+
+    T &operator[](int i) {
+        return this->data[i];
+    }
+
+    Vec4 operator+(const Vec4 &rhs) const {
+        return Vec4(this->x + rhs.x, this->y + rhs.y, this->z + rhs.z, this->w + rhs.w);
+    }
+
+    Vec4 operator-(const Vec4 &rhs) const {
+        return Vec4(this->x - rhs.x, this->y - rhs.y, this->z - rhs.z, this->w - rhs.w);
+    }
+
+    Vec4 operator*(T rhs) const {
+        return Vec4(this->x*rhs, this->y*rhs, this->z*rhs, this->w*rhs);
+    }
+
+    Vec4 operator/(T rhs) const {
+        T inv = static_cast<T>(1) / rhs;
+        return Vec4(this->x*inv, this->y*inv, this->z*inv, this->w*inv);
+    }
+
+    Vec4 &operator+=(const Vec4 &rhs) {
+        this->x += rhs.x;
+        this->y += rhs.y;
+        this->z += rhs.z;
+        this->w += rhs.w;
+        return *this;
+    }
+
+    Vec4 &operator-=(const Vec4 &rhs) {
+        this->x -= rhs.x;
+        this->y -= rhs.y;
+        this->z -= rhs.z;
+        this->w -= rhs.w;
+        return *this;
+    }
+
+    Vec4 &operator*=(T rhs) {
+        this->x *= rhs;
+        this->y *= rhs;
+        this->z *= rhs;
+        this->w *= rhs;
+        return *this;
+    }
+
+    Vec4 &operator/=(T rhs) {
+        T inv = static_cast<T>(1) / rhs;
+        this->x *= inv;
+        this->y *= inv;
+        this->z *= inv;
+        this->w *= inv;
+        return *this;
+    }
+
+    union {
+        struct {
+            T x, y, z, w;
+        };
+        T data[4];
+    };
+};
+
+using Vec4i = Vec4<int>;
+using Vec4f = Vec4<float>;
+
+// ##################################################################################
+// ### Rect
+// ##################################################################################
+
 template<typename T>
 struct Rect {
     Rect() = default;
@@ -295,6 +425,10 @@ struct Rect {
 
 using IntRect = Rect<int>;
 using FloatRect = Rect<float>;
+
+// ##################################################################################
+// ### Mat4
+// ##################################################################################
 
 template<typename T>
 struct Mat4 {
