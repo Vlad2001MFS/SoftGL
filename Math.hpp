@@ -392,6 +392,15 @@ struct Mat4 {
         this->m43 = - (static_cast<T>(2) * zFar * zNear) / (zFar - zNear); // transpose this if there are problems
     }
 
+    void setViewport(T x, T y, T w, T h) {
+        T a = (w - static_cast<T>(1)) / static_cast<T>(2);
+        T b = (h - static_cast<T>(1)) / static_cast<T>(2);
+        set(a,  0, 0, x,
+            0, -b, 0, y,
+            0,  0, 1, 0,
+            a,  b, 0, 1);
+    }
+
     Mat4 operator*(const Mat4 &rhs) const {
         Mat4 m;
         for (int r = 0; r < 4; r++) {
