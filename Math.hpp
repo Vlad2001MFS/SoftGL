@@ -74,7 +74,10 @@ template<typename T>
 struct Vec2 {
     Vec2() = default;
     Vec2(T x, T y) : x(x), y(y) {}
-    Vec2(T xy) : x(xy), y(xy) {}
+    explicit Vec2(T xy) : x(xy), y(xy) {}
+
+    template<typename T2>
+    explicit Vec2(const Vec2<T2> &v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)) {}
 
     void set(T x, T y) {
         this->x = x;
@@ -172,7 +175,10 @@ template<typename T>
 struct Vec3 {
     Vec3() = default;
     Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
-    Vec3(T xyz) : x(xyz), y(xyz), z(xyz) {}
+    explicit Vec3(T xyz) : x(xyz), y(xyz), z(xyz) {}
+
+    template<typename T2>
+    explicit Vec3(const Vec3<T2> &v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)) {}
 
     void set(T x, T y, T z) {
         this->x = x;
@@ -276,7 +282,10 @@ template<typename T>
 struct Vec4 {
     Vec4() = default;
     Vec4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
-    Vec4(T xyzw) : x(xyzw), y(xyzw), z(xyzw), w(xyzw) {}
+    explicit Vec4(T xyzw) : x(xyzw), y(xyzw), z(xyzw), w(xyzw) {}
+
+    template<typename T2>
+    explicit Vec4(const Vec4<T2> &v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(static_cast<T>(v.w)) {}
 
     void set(T x, T y, T z, T w) {
         this->x = x;
@@ -392,6 +401,9 @@ struct Rect {
         set(min, max);
     }
 
+    template<typename T2>
+    explicit Rect(const Rect<T2> &rc) : min(Vec2<T>(rc.min)), max(Vec2<T>(rc.max)) {}
+
     void set(T minX, T minY, T maxX, T maxY) {
         this->min.set(minX, minY);
         this->max.set(maxX, maxY);
@@ -442,6 +454,9 @@ struct Mat4 {
             m31, m32, m33, m34,
             m41, m42, m43, m44);
     }
+
+    template<typename T2>
+    explicit Mat4(const Mat4<T2> &m) : cols{Vec4<T>(m.cols[0]), Vec4<T>(m.cols[1]), Vec4<T>(m.cols[2]), Vec4<T>(m.cols[3])} {}
 
     void translate(T x, T y, T z) {
         (*this) *= createTranslate(x, y, z);
@@ -535,6 +550,14 @@ struct Mat4 {
             a,  b, 0, 1);
     }
 
+    T operator()(int r, int c) const {
+        return this->cols[c][r];
+    }
+
+    T &operator()(int r, int c) {
+        return this->cols[c][r];
+    }
+
     Mat4 operator*(const Mat4 &rhs) const {
         Mat4 m;
         for (int r = 0; r < 4; r++) {
@@ -553,12 +576,14 @@ struct Mat4 {
         return *this;
     }
 
-    T operator()(int r, int c) const {
-        return this->data[c + r*4];
-    }
-
-    T &operator()(int r, int c) {
-        return this->data[c + r*4];
+    Vec4<T> operator*(const Vec4<T> &rhs) const {
+        auto v = Vec4<T>(static_cast<T>(0));
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                v[r] += (*this)(r, c)*rhs[c];
+            }
+        }
+        return v;
     }
 
     static Mat4 createTranslate(T x, T y, T z) {
@@ -585,6 +610,12 @@ struct Mat4 {
         return m;
     }
 
+    static Mat4 createViewport(T x, T y, T w, T h) {
+        Mat4 m;
+        m.setViewport(x, y, w, h);
+        return m;
+    }
+
     static const Mat4 Identity;
 
     union {
@@ -598,6 +629,7 @@ struct Mat4 {
         // 1 5  9 13
         // 2 6 10 14
         // 3 7 11 15
+        Vec4f cols[4];
         float data[16];
     };
 };
