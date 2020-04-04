@@ -12,6 +12,12 @@ struct GLState {
 
     IntRect viewport = IntRect(0, 0, 0, 0);
 
+    uint32_t depthFunc = GL_LESS;
+
+    uint32_t caps = 0;
+
+    uint32_t imMode = 0;
+
     Mat4f &currentMat() {
         if (matrixMode == GL_PROJECTION) {
             return projMat;
@@ -30,14 +36,7 @@ void destroyGLState(GLState *state) {
     delete state;
 }
 
-GLAPI void glClear(GLbitfield mask) {
-    if (mask & GL_COLOR_BUFFER_BIT) {
-        rsClearColor(gCurrentState->clearColor);
-    }
-    if (mask & GL_DEPTH_BUFFER_BIT) {
-        rsClearDepth(gCurrentState->clearDepth);
-    }
-}
+// ############################################################################################
 
 GLAPI void glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
     gCurrentState->clearColor.setFloat4(red, green, blue, alpha);
@@ -47,16 +46,45 @@ GLAPI void glClearDepth(GLclampd depth) {
     gCurrentState->clearDepth = static_cast<float>(depth);
 }
 
+GLAPI void glClear(GLbitfield mask) {
+    if (mask & GL_COLOR_BUFFER_BIT) {
+        rsClearColor(gCurrentState->clearColor);
+    }
+    if (mask & GL_DEPTH_BUFFER_BIT) {
+        rsClearDepth(gCurrentState->clearDepth);
+    }
+}
+
+// ############################################################################################
+
+GLAPI void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+    gCurrentState->viewport.set(x, y, width, height);
+}
+
+GLAPI void glEnable(GLenum cap) {
+    gCurrentState->caps |= cap;
+}
+
+GLAPI void glDisable(GLenum cap) {
+    gCurrentState->caps &= ~cap;
+}
+
+GLAPI void glDepthFunc(GLenum func) {
+    gCurrentState->depthFunc = func;
+}
+
+// ############################################################################################
+
+GLAPI void glMatrixMode(GLenum mode) {
+    gCurrentState->matrixMode = mode;
+}
+
 GLAPI void glLoadIdentity(void) {
     gCurrentState->currentMat().setIdentity();
 }
 
 GLAPI void glLoadMatrixf(const GLfloat *m) {
     gCurrentState->currentMat().set(m);
-}
-
-GLAPI void glMatrixMode(GLenum mode) {
-    gCurrentState->matrixMode = mode;
 }
 
 GLAPI void glRotatef(GLfloat angle, GLfloat x, GLfloat y, GLfloat z) {
@@ -71,6 +99,20 @@ GLAPI void glTranslatef(GLfloat x, GLfloat y, GLfloat z) {
     gCurrentState->currentMat().translate(x, y, z);
 }
 
-GLAPI void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
-    gCurrentState->viewport.set(x, y, width, height);
+// ############################################################################################
+
+GLAPI void glBegin(GLenum mode) {
+    gCurrentState->imMode = mode;
+}
+
+GLAPI void glVertex3f(GLfloat x, GLfloat y, GLfloat z) {
+    return GLAPI void();
+}
+
+GLAPI void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
+    return GLAPI void();
+}
+
+GLAPI void glEnd(void) {
+    gCurrentState->imMode = 0;
 }
