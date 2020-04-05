@@ -1,40 +1,7 @@
-#include "GL.hpp"
 #include "GLInternal.hpp"
 #include "Rasterizer.hpp"
 
-struct GLState {
-    Color clearColor = Color(0, 0, 0, 255);
-    float clearDepth = 1.0f;
-
-    uint32_t matrixMode = GL_MODELVIEW;
-    Mat4f projMat = Mat4f::Identity;
-    Mat4f modelViewMat = Mat4f::Identity;
-
-    IntRect viewport = IntRect(0, 0, 0, 0);
-
-    uint32_t depthFunc = GL_LESS;
-
-    uint32_t caps = 0;
-
-    uint32_t imMode = 0;
-
-    Mat4f &currentMat() {
-        if (matrixMode == GL_PROJECTION) {
-            return projMat;
-        }
-        else if (matrixMode == GL_MODELVIEW) {
-            return modelViewMat;
-        }
-    }
-} *gCurrentState = nullptr;
-
-GLState *createGLState() {
-    return new GLState();
-}
-
-void destroyGLState(GLState *state) {
-    delete state;
-}
+GLState *gCurrentState = nullptr;
 
 // ############################################################################################
 
@@ -102,17 +69,45 @@ GLAPI void glTranslatef(GLfloat x, GLfloat y, GLfloat z) {
 // ############################################################################################
 
 GLAPI void glBegin(GLenum mode) {
-    gCurrentState->imMode = mode;
+    gCurrentState->primType = mode;
+}
+
+GLAPI void glColor3f(GLfloat red, GLfloat green, GLfloat blue) {
+    gCurrentState->imColor.setFloat4(red, green, blue, 1.0f);
+}
+
+GLAPI void glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    gCurrentState->imColor.setFloat4(red, green, blue, alpha);
 }
 
 GLAPI void glVertex3f(GLfloat x, GLfloat y, GLfloat z) {
-    return GLAPI void();
+    glVertex4f(x, y, z, 1.0f);
 }
 
 GLAPI void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
-    return GLAPI void();
+    Vertex v;
+    v.pos.set(x, y, z, 1.0f);
+    v.color = gCurrentState->imColor;
+    vpAddVertex(std::move(v));
+
+    if (gCurrentState->primType == GL_QUADS) {
+        gCurrentState->imQuadVertsCounter++;
+        if (gCurrentState->imQuadVertsCounter == 3) {
+            size_t vert4Idx = vpGetVertices().size() - 3;
+            size_t vert5Idx = vpGetVertices().size() - 1;
+            vpAddVertex(Vertex(vpGetVertices()[vert4Idx]));
+            vpAddVertex(Vertex(vpGetVertices()[vert5Idx]));
+        }
+        else if (gCurrentState->imQuadVertsCounter == 4) {
+            gCurrentState->imQuadVertsCounter = 0;
+        }
+    }
 }
 
 GLAPI void glEnd(void) {
-    gCurrentState->imMode = 0;
+    if (gCurrentState->primType == GL_QUADS) {
+        gCurrentState->primType = GL_TRIANGLES;
+    }
+    vpProcess();
+    gCurrentState->primType = 0;
 }

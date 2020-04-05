@@ -43,6 +43,17 @@ typedef void GLvoid;
 #define GL_MODELVIEW                      0x1700
 #define GL_PROJECTION                     0x1701
 
+//#define GL_POINTS                         0x0000
+//#define GL_LINES                          0x0001
+//#define GL_LINE_LOOP                      0x0002
+//#define GL_LINE_STRIP                     0x0003
+#define GL_TRIANGLES                      0x0004
+//#define GL_TRIANGLE_STRIP                 0x0005
+//#define GL_TRIANGLE_FAN                   0x0006
+#define GL_QUADS                          0x0007
+//#define GL_QUAD_STRIP                     0x0008
+//#define GL_POLYGON                        0x0009
+
 /*************************************************************/
 
 GLAPI void APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -62,6 +73,8 @@ GLAPI void APIENTRY glScalef (GLfloat x, GLfloat y, GLfloat z);
 GLAPI void APIENTRY glTranslatef (GLfloat x, GLfloat y, GLfloat z);
 
 GLAPI void APIENTRY glBegin (GLenum mode);
+GLAPI void APIENTRY glColor3f (GLfloat red, GLfloat green, GLfloat blue);
+GLAPI void APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 GLAPI void APIENTRY glVertex3f (GLfloat x, GLfloat y, GLfloat z);
 GLAPI void APIENTRY glVertex4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 GLAPI void APIENTRY glEnd (void);

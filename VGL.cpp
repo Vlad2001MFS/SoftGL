@@ -1,18 +1,8 @@
 #include "VGL.hpp"
 #include "VGLInternal.hpp"
-#include "GLInternal.hpp"
 #include "Rasterizer.hpp"
 
 GLContext *gCurrentContext = nullptr;
-
-GLContext::GLContext() {
-    this->bufferRect.set(0, 0, 0, 0);
-    this->state = createGLState();
-}
-
-GLContext::~GLContext() {
-    destroyGLState(this->state);
-}
 
 GLContext *vglContextCreate(int w, int h) {
     auto ctx = new GLContext();
@@ -30,7 +20,7 @@ void vglContextDestroy(GLContext *ctx) {
 void vglContextMakeCurrent(GLContext *ctx) {
     if (ctx) {
         gCurrentContext = ctx;
-        gCurrentState = ctx->state;
+        gCurrentState = &ctx->state;
         rsSetFramebuffer(ctx->bufferRect, ctx->colorBufferData.data(), ctx->depthBufferData.data());
     }
     else {

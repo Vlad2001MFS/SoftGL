@@ -5,6 +5,7 @@
     <ClCompile Include="VGL.cpp" />
     <ClCompile Include="GL.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
+    <ClCompile Include="VertexProcessor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math.hpp" />
@@ -13,5 +14,6 @@
     <ClInclude Include="Rasterizer.hpp" />
     <ClInclude Include="VGLInternal.hpp" />
     <ClInclude Include="GLInternal.hpp" />
+    <ClInclude Include="VertexProcessor.hpp" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
 #pragma once
 #include <type_traits>
+#include <limits>
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdint.h>
@@ -10,6 +11,31 @@
 // ##################################################################################
 
 struct Math {
+    template<typename T>
+    static T min(T a, T b) {
+        return a < b ? a : b;
+    }
+
+    template<typename T>
+    static T min(T a, T b, T c) {
+        return min(a, min(b, c));
+    }
+
+    template<typename T>
+    static T max(T a, T b) {
+        return a > b ? a : b;
+    }
+
+    template<typename T>
+    static T max(T a, T b, T c) {
+        return max(a, max(b, c));
+    }
+
+    template<typename T>
+    static T clamp(T value, T minValue, T maxValue) {
+        return max(minValue, min(value, maxValue));
+    }
+
     static float deg(float rad) {
         return static_cast<float>(rad*180.0f / M_PI);
     }
@@ -33,6 +59,18 @@ struct Math {
     static float tan(float angle) {
         return tanf(angle);
     }
+
+    static float abs(float value) {
+        return fabsf(value);
+    }
+
+    static bool isEqual(float a, float b) {
+        return abs(a - b) < std::numeric_limits<float>::epsilon();
+    }
+
+    static bool isNotEqual(float a, float b) {
+        return abs(a - b) > std::numeric_limits<float>::epsilon();
+    }
 };
 
 // ##################################################################################
@@ -50,6 +88,14 @@ struct Color {
         this->a = static_cast<uint8_t>(a*255);
     }
 
+    uint8_t operator[](int i) const {
+        return this->data[i];
+    }
+
+    uint8_t &operator[](int i) {
+        return this->data[i];
+    }
+
     bool operator==(const Color &rhs) const {
         return this->data == rhs.data;
     }
@@ -62,7 +108,8 @@ struct Color {
         struct {
             uint8_t r, g, b, a;
         };
-        uint32_t data;
+        uint8_t data[4];
+        uint32_t rgba;
     };
 };
 
@@ -76,15 +123,36 @@ struct Vec2 {
     Vec2(T x, T y) : x(x), y(y) {}
     explicit Vec2(T xy) : x(xy), y(xy) {}
 
-    template<typename T2>
-    explicit Vec2(const Vec2<T2> &v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)) {}
+    static Vec2 min(Vec2 a, Vec2 b) {
+        return Vec2(Math::min(a.x, b.x), Math::min(a.y, b.y));
+    }
+
+    static Vec2 min(Vec2 a, Vec2 b, Vec2 c) {
+        return min(a, min(b, c));
+    }
+
+    static Vec2 max(Vec2 a, Vec2 b) {
+        return Vec2(Math::max(a.x, b.x), Math::max(a.y, b.y));
+    }
+
+    static Vec2 max(Vec2 a, Vec2 b, Vec2 c) {
+        return max(a, max(b, c));
+    }
+
+    static Vec2 clamp(Vec2 value, Vec2 minValue, Vec2 maxValue) {
+        return max(minValue, min(value, maxValue));
+    }
 
     void set(T x, T y) {
         this->x = x;
         this->y = y;
     }
 
-    float lengthSq() {
+    T dot(const Vec2 &v) {
+        return this->x*v.x + this->y*v.y;
+    }
+
+    T lengthSq() {
         return this->x*this->x + this->y*this->y;
     }
 
@@ -106,6 +174,11 @@ struct Vec2 {
         return v;
     }
 
+    template<typename T2>
+    explicit operator Vec2<T2>() const {
+        return Vec2<T2>(static_cast<T2>(this->x), static_cast<T2>(this->y));
+    }
+
     T operator[](int i) const {
         return this->data[i];
     }
@@ -120,6 +193,10 @@ struct Vec2 {
 
     Vec2 operator-(const Vec2 &rhs) const {
         return Vec2(this->x - rhs.x, this->y - rhs.y);
+    }
+
+    Vec2 operator*(const Vec2 &rhs) const {
+        return Vec2(this->x*rhs.x, this->y*rhs.y);
     }
 
     Vec2 operator*(T rhs) const {
@@ -177,8 +254,25 @@ struct Vec3 {
     Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
     explicit Vec3(T xyz) : x(xyz), y(xyz), z(xyz) {}
 
-    template<typename T2>
-    explicit Vec3(const Vec3<T2> &v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)) {}
+    static Vec3 min(Vec3 a, Vec3 b) {
+        return Vec3(Math::min(a.x, b.x), Math::min(a.y, b.y), Math::min(a.z, b.z));
+    }
+
+    static Vec3 min(Vec3 a, Vec3 b, Vec3 c) {
+        return min(a, min(b, c));
+    }
+
+    static Vec3 max(Vec3 a, Vec3 b) {
+        return Vec3(Math::max(a.x, b.x), Math::max(a.y, b.y), Math::max(a.z, b.z));
+    }
+
+    static Vec3 max(Vec3 a, Vec3 b, Vec3 c) {
+        return max(a, max(b, c));
+    }
+
+    static Vec3 clamp(Vec3 value, Vec3 minValue, Vec3 maxValue) {
+        return max(minValue, min(value, maxValue));
+    }
 
     void set(T x, T y, T z) {
         this->x = x;
@@ -186,7 +280,11 @@ struct Vec3 {
         this->z = z;
     }
 
-    float lengthSq() {
+    T dot(const Vec3 &v) {
+        return this->x*v.x + this->y*v.y + this->z*v.z;
+    }
+
+    T lengthSq() {
         return this->x*this->x + this->y*this->y + this->z*this->z;
     }
 
@@ -209,6 +307,16 @@ struct Vec3 {
         return v;
     }
 
+    template<typename T2>
+    explicit operator Vec2<T2>() const {
+        return Vec2<T2>(static_cast<T2>(this->x), static_cast<T2>(this->y));
+    }
+
+    template<typename T2>
+    explicit operator Vec3<T2>() const {
+        return Vec3<T2>(static_cast<T2>(this->x), static_cast<T2>(this->y), static_cast<T2>(this->z));
+    }
+
     T operator[](int i) const {
         return this->data[i];
     }
@@ -223,6 +331,10 @@ struct Vec3 {
 
     Vec3 operator-(const Vec3 &rhs) const {
         return Vec3(this->x - rhs.x, this->y - rhs.y, this->z - rhs.z);
+    }
+
+    Vec3 operator*(const Vec3 &rhs) const {
+        return Vec3(this->x*rhs.x, this->y*rhs.y, this->z*rhs.z);
     }
 
     Vec3 operator*(T rhs) const {
@@ -287,6 +399,26 @@ struct Vec4 {
     template<typename T2>
     explicit Vec4(const Vec4<T2> &v) : x(static_cast<T>(v.x)), y(static_cast<T>(v.y)), z(static_cast<T>(v.z)), w(static_cast<T>(v.w)) {}
 
+    static Vec4 min(Vec4 a, Vec4 b) {
+        return Vec4(Math::min(a.x, b.x), Math::min(a.y, b.y), Math::min(a.z, b.z), Math::min(a.w, b.w));
+    }
+
+    static Vec4 min(Vec4 a, Vec4 b, Vec4 c) {
+        return min(a, min(b, c));
+    }
+
+    static Vec4 max(Vec4 a, Vec4 b) {
+        return Vec4(Math::max(a.x, b.x), Math::max(a.y, b.y), Math::max(a.z, b.z), Math::max(a.w, b.w));
+    }
+
+    static Vec4 max(Vec4 a, Vec4 b, Vec4 c) {
+        return max(a, max(b, c));
+    }
+
+    static Vec4 clamp(Vec4 value, Vec4 minValue, Vec4 maxValue) {
+        return max(minValue, min(value, maxValue));
+    }
+
     void set(T x, T y, T z, T w) {
         this->x = x;
         this->y = y;
@@ -294,7 +426,11 @@ struct Vec4 {
         this->w = w;
     }
 
-    float lengthSq() {
+    T dot(const Vec4 &v) {
+        return this->x*v.x + this->y*v.y + this->z*v.z + this->w*v.w;
+    }
+
+    T lengthSq() {
         return this->x*this->x + this->y*this->y + this->z*this->z + this->w*this->w;
     }
 
@@ -318,6 +454,21 @@ struct Vec4 {
         return v;
     }
 
+    template<typename T2>
+    explicit operator Vec2<T2>() const {
+        return Vec2<T2>(static_cast<T2>(this->x), static_cast<T2>(this->y));
+    }
+
+    template<typename T2>
+    explicit operator Vec3<T2>() const {
+        return Vec3<T2>(static_cast<T2>(this->x), static_cast<T2>(this->y), static_cast<T2>(this->z));
+    }
+
+    template<typename T2>
+    explicit operator Vec4<T2>() const {
+        return Vec4<T2>(static_cast<T2>(this->x), static_cast<T2>(this->y), static_cast<T2>(this->z), static_cast<T2>(this->w));
+    }
+
     T operator[](int i) const {
         return this->data[i];
     }
@@ -332,6 +483,10 @@ struct Vec4 {
 
     Vec4 operator-(const Vec4 &rhs) const {
         return Vec4(this->x - rhs.x, this->y - rhs.y, this->z - rhs.z, this->w - rhs.w);
+    }
+
+    Vec4 operator*(const Vec4 &rhs) const {
+        return Vec4(this->x*rhs.x, this->y*rhs.y, this->z*rhs.z, this->w*rhs.w);
     }
 
     Vec4 operator*(T rhs) const {
@@ -537,17 +692,17 @@ struct Mat4 {
         this->m11 = static_cast<T>(1) / (aspect * tanHalfFovy);
         this->m22 = static_cast<T>(1) / (tanHalfFovy);
         this->m33 = - (zFar + zNear) / (zFar - zNear);
-        this->m34 = - static_cast<T>(1); // transpose this if there are problems
-        this->m43 = - (static_cast<T>(2) * zFar * zNear) / (zFar - zNear); // transpose this if there are problems
+        this->m43 = - static_cast<T>(1); // transpose this if there are problems
+        this->m34 = - (static_cast<T>(2) * zFar * zNear) / (zFar - zNear); // transpose this if there are problems
     }
 
     void setViewport(T x, T y, T w, T h) {
         T a = (w - static_cast<T>(1)) / static_cast<T>(2);
         T b = (h - static_cast<T>(1)) / static_cast<T>(2);
-        set(a,  0, 0, x,
-            0, -b, 0, y,
+        set(a,  0, 0, a,
+            0, -b, 0, b,
             0,  0, 1, 0,
-            a,  b, 0, 1);
+            0,  0, 0, 1);
     }
 
     T operator()(int r, int c) const {

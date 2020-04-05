@@ -4,13 +4,10 @@
 #include <vector>
 
 struct GLContext {
-    GLContext();
-    ~GLContext();
-
-    IntRect bufferRect;
+    IntRect bufferRect = IntRect(0, 0, 0, 0);
     std::vector<Color> colorBufferData;
     std::vector<float> depthBufferData;
-    GLState *state;
+    GLState state = GLState();
 };
 
 extern GLContext *gCurrentContext;
