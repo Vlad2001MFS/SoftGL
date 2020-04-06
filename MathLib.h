@@ -231,7 +231,7 @@ typedef struct vglFloatRect {
 // ### Mat4
 // ##################################################################################
 
-typedef struct vglMat4 {
+typedef struct vglMat4f {
     union {
         struct {
             float m11, m21, m31, m41;
@@ -246,10 +246,10 @@ typedef struct vglMat4 {
         vglVec4f cols[4];
         float data[16];
     };
-} vglMat4;
+} vglMat4f;
 
 #define VGL_MAT4(nm11, nm12, nm13, nm14,   nm21, nm22, nm23, nm24,   nm31, nm32, nm33, nm34,   nm41, nm42, nm43, nm44) \
-    ((vglMat4) { \
+    ((vglMat4f) { \
         nm11, nm12, nm13, nm14, \
         nm21, nm22, nm23, nm24, \
         nm31, nm32, nm33, nm34, \
