@@ -1,13 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="VGL.c" />
     <ClCompile Include="GL.c" />
     <ClCompile Include="VertexProcessor.c" />
+    <ClCompile Include="Rasterizer.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Rasterizer.hpp" />
     <ClInclude Include="MathLib.h" />
     <ClInclude Include="VGLInternal.h" />
     <ClInclude Include="VGL.h" />
@@ -15,5 +14,6 @@
     <ClInclude Include="GLInternal.h" />
     <ClInclude Include="GL.h" />
     <ClInclude Include="VertexProcessor.h" />
+    <ClInclude Include="Rasterizer.h" />
   </ItemGroup>
 </Project>
