@@ -33,7 +33,8 @@ typedef struct vglColor {
 } vglColor;
 
 #define VGL_COLOR(r, g, b, a) ((vglColor){ r, g, b, a })
-#define VGL_COLOR_SET_FLOAT4(self, nr, ng, nb, na) { (self).r = (nr)*255; (self).g = (ng)*255; (self).b = (nb)*255; (self).a = (na)*255; }
+#define VGL_COLOR_SET(out, nr, ng, nb, na) { (out).r = nr; (out).g = ng; (out).b = nb; (out).a = na; }
+#define VGL_COLOR_SET_FLOAT4(out, nr, ng, nb, na) VGL_COLOR_SET((nr)*255, (ng)*255, (nb)*255, (na)*255)
 #define VGL_COLOR_EQUAL(lhs, rhs) ((lhs).rgba == (rhs).rgba)
 
 // ##################################################################################
@@ -255,6 +256,13 @@ typedef struct vglMat4f {
         nm31, nm32, nm33, nm34, \
         nm41, nm42, nm43, nm44  \
     })
+
+#define VGL_MAT4_IDENTITY() VGL_MAT4(\
+    1, 0, 0, 0, \
+    0, 1, 0, 0, \
+    0, 0, 1, 0, \
+    0, 0, 0, 1  \
+)
 
 #define VGL_MAT4_SET(out,   nm11, nm12, nm13, nm14,   nm21, nm22, nm23, nm24,   nm31, nm32, nm33, nm34,   nm41, nm42, nm43, nm44) { \
     (out).m11 = nm11; (out).m21 = nm21; (out).m31 = nm31; (out).m41 = nm41; \
