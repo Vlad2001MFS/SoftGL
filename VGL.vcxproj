@@ -157,14 +157,14 @@
   <ItemGroup>
     <ClCompile Include="GL.c" />
     <ClCompile Include="Rasterizer.cpp" />
-    <ClCompile Include="VertexProcessor.cpp" />
+    <ClCompile Include="VertexProcessor.c" />
     <ClCompile Include="VGL.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="GL.h" />
     <ClInclude Include="GLInternal.h" />
-    <ClInclude Include="VertexProcessor.hpp" />
+    <ClInclude Include="VertexProcessor.h" />
     <ClInclude Include="VGLInternal.h" />
     <ClInclude Include="MathLib.h" />
     <ClInclude Include="Rasterizer.hpp" />
