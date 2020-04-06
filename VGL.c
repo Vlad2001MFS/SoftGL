@@ -9,6 +9,7 @@ vglGLContext *gCurrentContext = NULL;
 vglGLContext *vglContextCreate(int w, int h) {
     vglGLContext *ctx = calloc(1, sizeof(vglGLContext));
     vglContextResizeBuffers(ctx, w, h);
+    vglGLStateSetDefault(&ctx->state);
     return ctx;
 }
 

@@ -155,15 +155,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GL.cpp" />
+    <ClCompile Include="GL.c" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="VertexProcessor.cpp" />
     <ClCompile Include="VGL.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GL.hpp" />
-    <ClInclude Include="GLInternal.hpp" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="GL.h" />
+    <ClInclude Include="GLInternal.h" />
     <ClInclude Include="VertexProcessor.hpp" />
     <ClInclude Include="VGLInternal.h" />
     <ClInclude Include="MathLib.h" />
