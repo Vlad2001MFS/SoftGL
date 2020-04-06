@@ -156,7 +156,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GL.cpp" />
-    <ClCompile Include="Math.cpp" />
     <ClCompile Include="Rasterizer.cpp" />
     <ClCompile Include="VertexProcessor.cpp" />
     <ClCompile Include="VGL.cpp" />
@@ -166,7 +165,7 @@
     <ClInclude Include="GLInternal.hpp" />
     <ClInclude Include="VertexProcessor.hpp" />
     <ClInclude Include="VGLInternal.hpp" />
-    <ClInclude Include="Math.hpp" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="Rasterizer.hpp" />
     <ClInclude Include="VGL.hpp" />
   </ItemGroup>
