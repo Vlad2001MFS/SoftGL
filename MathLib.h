@@ -148,7 +148,7 @@ typedef struct vglVec4i {
         };
         int data[4];
     };
-} vglVec4i, __declspec(align(16)) vglAlignedVec3i;
+} vglVec4i, __declspec(align(16)) vglAlignedVec4i;
 
 typedef struct vglVec4f {
     union {
@@ -157,7 +157,7 @@ typedef struct vglVec4f {
         };
         float data[4];
     };
-} vglVec4f, __declspec(align(16)) vglAlignedVec3f;
+} vglVec4f, __declspec(align(16)) vglAlignedVec4f;
 
 #define VGL_VEC4_MIN(a, b) _Generic((a), \
     vglVec4i: ((vglVec4i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) }), \
