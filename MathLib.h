@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdint.h>
 #include <memory.h>
+#include <float.h>
 
 // ##################################################################################
 // ### Math library
@@ -11,10 +12,10 @@
 #define VGL_MIN(a, b) ((a) < (b) ? (a) : (b))
 #define VGL_MIN3(a, b, c) VGL_MIN(a, VGL_MIN(b, c))
 #define VGL_MAX(a, b) ((a) > (b) ? (a) : (b))
-#define VGL_MIN3(a, b, c) VGL_MAX(a, VGL_MAX(b, c))
+#define VGL_MAX3(a, b, c) VGL_MAX(a, VGL_MAX(b, c))
 #define VGL_CLAMP(value, minValue, maxValue) (VGL_MAX(minValue, VGL_MIN(value, maxValue)))
-#define VGL_RAD(deg) ((deg)*M_PI / 180)
-#define VGL_DEG(rad) ((rad)*180 / M_PI)
+#define VGL_RAD(deg) ((deg)*((float)M_PI) / 180)
+#define VGL_DEG(rad) ((rad)*180 / ((float)M_PI))
 #define VGL_FLT_EQUAL(a, b) (fabsf((a) - (b)) < FLT_EPSILON)
 #define VGL_FLT_NOT_EQUAL(a, b) (fabsf((a) - (b)) > FLT_EPSILON)
 
@@ -48,7 +49,16 @@ typedef struct vglVec2i {
         };
         int data[2];
     };
-} vglVec2i, __declspec(align(16)) vglAlignedVec2i;
+} vglVec2i;
+
+typedef __declspec(align(16)) struct vglAlignedVec2i {
+    union {
+        struct {
+            int x, y;
+        };
+        int data[2];
+    };
+} vglAlignedVec2i;
 
 typedef struct vglVec2f {
     union {
@@ -57,26 +67,34 @@ typedef struct vglVec2f {
         };
         float data[2];
     };
-} vglVec2f, __declspec(align(16)) vglAlignedVec2f;
+} vglVec2f;
+
+typedef __declspec(align(16)) struct vglAlignedVec2f {
+    union {
+        struct {
+            float x, y;
+        };
+        float data[2];
+    };
+} vglAlignedVec2f;
 
 #define VGL_VEC2I(x, y) ((vglVec2i){ x, y })
 #define VGL_VEC2F(x, y) ((vglVec2f){ x, y })
 #define VGL_ALIGNED_VEC2I(x, y) ((vglAlignedVec2i){ x, y })
 #define VGL_ALIGNED_VEC2F(x, y) ((vglAlignedVec2f){ x, y })
 
-#define VGL_VEC2_MIN(a, b) _Generic((a), \
-    vglVec2i: ((vglVec2i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y) }), \
-    vglVec2f: ((vglVec2f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y) })  \
-)
-#define VGL_VEC2_MIN3(a, b, c) VGL_VEC2_MIN(a, VGL_VEC2_MIN(b, c))
+#define VGL_VEC2I_MIN(a, b) ((vglVec2i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y) })
+#define VGL_VEC2F_MIN(a, b) ((vglVec2f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y) })
+#define VGL_VEC2I_MIN3(a, b, c) VGL_VEC2I_MIN(a, VGL_VEC2I_MIN(b, c))
+#define VGL_VEC2F_MIN3(a, b, c) VGL_VEC2F_MIN(a, VGL_VEC2F_MIN(b, c))
 
-#define VGL_VEC2_MAX(a, b) _Generic((a), \
-    vglVec2i: ((vglVec2i){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y) }), \
-    vglVec2f: ((vglVec2f){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y) })  \
-)
-#define VGL_VEC2_MAX3(a, b, c) VGL_VEC2_MAX(a, VGL_VEC2_MAX(b, c))
+#define VGL_VEC2I_MAX(a, b) ((vglVec2i){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y) })
+#define VGL_VEC2F_MAX(a, b) ((vglVec2f){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y) })
+#define VGL_VEC2I_MAX3(a, b, c) VGL_VEC2I_MAX(a, VGL_VEC2I_MAX(b, c))
+#define VGL_VEC2F_MAX3(a, b, c) VGL_VEC2F_MAX(a, VGL_VEC2F_MAX(b, c))
 
-#define VGL_VEC2_CLAMP(value, minValue, maxValue) VGL_VEC2_MAX(minValue, VGL_VEC2_MIN(value, maxValue))
+#define VGL_VEC2I_CLAMP(value, minValue, maxValue) VGL_VEC2I_MAX(minValue, VGL_VEC2I_MIN(value, maxValue))
+#define VGL_VEC2F_CLAMP(value, minValue, maxValue) VGL_VEC2F_MAX(minValue, VGL_VEC2F_MIN(value, maxValue))
 
 #define VGL_VEC2_DOT(a, b) ((a).x*(b).x + (a).y*(b).y)
 #define VGL_VEC2_LEN_SQ(a) VGL_VEC2_DOT(a, a)
@@ -104,7 +122,16 @@ typedef struct vglVec3i {
         };
         int data[3];
     };
-} vglVec3i, __declspec(align(16)) vglAlignedVec3i;
+} vglVec3i;
+
+typedef __declspec(align(16)) struct vglAlignedVec3i {
+    union {
+        struct {
+            int x, y, z;
+        };
+        int data[3];
+    };
+} vglAlignedVec3i;
 
 typedef struct vglVec3f {
     union {
@@ -113,26 +140,34 @@ typedef struct vglVec3f {
         };
         float data[3];
     };
-} vglVec3f, __declspec(align(16)) vglAlignedVec3f;
+} vglVec3f;
+
+typedef __declspec(align(16)) struct vglAlignedVec3f {
+    union {
+        struct {
+            float x, y, z;
+        };
+        float data[3];
+    };
+} vglAlignedVec3f;
 
 #define VGL_VEC3I(x, y, z) ((vglVec3i){ x, y, z })
 #define VGL_VEC3F(x, y, z) ((vglVec3f){ x, y, z })
 #define VGL_ALIGNED_VEC3I(x, y, z) ((vglAlignedVec3i){ x, y, z })
 #define VGL_ALIGNED_VEC3F(x, y, z) ((vglAlignedVec3f){ x, y, z })
 
-#define VGL_VEC3_MIN(a, b) _Generic((a), \
-    vglVec3i: ((vglVec3i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z) }), \
-    vglVec3f: ((vglVec3f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z) })  \
-)
-#define VGL_VEC3_MIN3(a, b, c) VGL_VEC3_MIN(a, VGL_VEC3_MIN(b, c))
+#define VGL_VEC3I_MIN(a, b) ((vglVec3i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z) })
+#define VGL_VEC3F_MIN(a, b) ((vglVec3f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z) })
+#define VGL_VEC3I_MIN3(a, b, c) VGL_VEC3I_MIN(a, VGL_VEC3I_MIN(b, c))
+#define VGL_VEC3F_MIN3(a, b, c) VGL_VEC3F_MIN(a, VGL_VEC3F_MIN(b, c))
 
-#define VGL_VEC3_MAX(a, b) _Generic((a), \
-    vglVec3i: ((vglVec3i){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z) }), \
-    vglVec3f: ((vglVec3f){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z) })  \
-)
-#define VGL_VEC3_MAX3(a, b, c) VGL_VEC3_MAX(a, VGL_VEC3_MAX(b, c))
+#define VGL_VEC3I_MAX(a, b) ((vglVec3i){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z) })
+#define VGL_VEC3F_MAX(a, b) ((vglVec3f){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z) })
+#define VGL_VEC3I_MAX3(a, b, c) VGL_VEC3I_MAX(a, VGL_VEC3I_MAX(b, c))
+#define VGL_VEC3F_MAX3(a, b, c) VGL_VEC3F_MAX(a, VGL_VEC3F_MAX(b, c))
 
-#define VGL_VEC3_CLAMP(value, minValue, maxValue) VGL_VEC3_MAX(minValue, VGL_VEC3_MIN(value, maxValue))
+#define VGL_VEC3I_CLAMP(value, minValue, maxValue) VGL_VEC3I_MAX(minValue, VGL_VEC3I_MIN(value, maxValue))
+#define VGL_VEC3F_CLAMP(value, minValue, maxValue) VGL_VEC3F_MAX(minValue, VGL_VEC3F_MIN(value, maxValue))
 
 #define VGL_VEC3_DOT(a, b) ((a).x*(b).x + (a).y*(b).y + (a).z*(b).z)
 #define VGL_VEC3_LEN_SQ(a) VGL_VEC3_DOT(a, a)
@@ -160,7 +195,16 @@ typedef struct vglVec4i {
         };
         int data[4];
     };
-} vglVec4i, __declspec(align(16)) vglAlignedVec4i;
+} vglVec4i;
+
+typedef __declspec(align(16)) struct vglAlignedVec4i {
+    union {
+        struct {
+            int x, y, z, w;
+        };
+        int data[4];
+    };
+} vglAlignedVec4i;
 
 typedef struct vglVec4f {
     union {
@@ -169,26 +213,34 @@ typedef struct vglVec4f {
         };
         float data[4];
     };
-} vglVec4f, __declspec(align(16)) vglAlignedVec4f;
+} vglVec4f;
+
+typedef __declspec(align(16)) struct vglAlignedVec4f {
+    union {
+        struct {
+            float x, y, z, w;
+        };
+        float data[4];
+    };
+} vglAlignedVec4f;
 
 #define VGL_VEC4I(x, y, z, w) ((vglVec4i){ x, y, z, w })
 #define VGL_VEC4F(x, y, z, w) ((vglVec4f){ x, y, z, w })
 #define VGL_ALIGNED_VEC4I(x, y, z, w) ((vglAlignedVec4i){ x, y, z, w })
 #define VGL_ALIGNED_VEC4F(x, y, z, w) ((vglAlignedVec4f){ x, y, z, w })
 
-#define VGL_VEC4_MIN(a, b) _Generic((a), \
-    vglVec4i: ((vglVec4i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) }), \
-    vglVec4f: ((vglVec4f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) })  \
-)
-#define VGL_VEC4_MIN3(a, b, c) VGL_VEC4_MIN(a, VGL_VEC4_MIN(b, c))
+#define VGL_VEC4I_MIN(a, b) ((vglVec4i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) })
+#define VGL_VEC4F_MIN(a, b) ((vglVec4f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) })
+#define VGL_VEC4I_MIN3(a, b, c) VGL_VEC4I_MIN(a, VGL_VEC4I_MIN(b, c))
+#define VGL_VEC4F_MIN3(a, b, c) VGL_VEC4F_MIN(a, VGL_VEC4F_MIN(b, c))
 
-#define VGL_VEC4_MAX(a, b) _Generic((a), \
-    vglVec4i: ((vglVec4i){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z), VGL_MAX((a).w, (b).w) }), \
-    vglVec4f: ((vglVec4f){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z), VGL_MAX((a).w, (b).w) })  \
-)
-#define VGL_VEC4_MAX3(a, b, c) VGL_VEC4_MAX(a, VGL_VEC4_MAX(b, c))
+#define VGL_VEC4I_MAX(a, b) ((vglVec4i){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z), VGL_MAX((a).w, (b).w) })
+#define VGL_VEC4F_MAX(a, b) ((vglVec4f){ VGL_MAX((a).x, (b).x), VGL_MAX((a).y, (b).y), VGL_MAX((a).z, (b).z), VGL_MAX((a).w, (b).w) })
+#define VGL_VEC4I_MAX3(a, b, c) VGL_VEC4I_MAX(a, VGL_VEC4I_MAX(b, c))
+#define VGL_VEC4F_MAX3(a, b, c) VGL_VEC4F_MAX(a, VGL_VEC4F_MAX(b, c))
 
-#define VGL_VEC4_CLAMP(value, minValue, maxValue) VGL_VEC4_MAX(minValue, VGL_VEC4_MIN(value, maxValue))
+#define VGL_VEC4I_CLAMP(value, minValue, maxValue) VGL_VEC4I_MAX(minValue, VGL_VEC4I_MIN(value, maxValue))
+#define VGL_VEC4F_CLAMP(value, minValue, maxValue) VGL_VEC4F_MAX(minValue, VGL_VEC4F_MIN(value, maxValue))
 
 #define VGL_VEC4_DOT(a, b) ((a).x*(b).x + (a).y*(b).y + (a).z*(b).z + (a).w*(b).w)
 #define VGL_VEC4_LEN_SQ(a) VGL_VEC4_DOT(a, a)
