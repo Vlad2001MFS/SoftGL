@@ -160,6 +160,7 @@ void drawTriangleBarycentricSIMD(const Vec2i &bufferSize, bool isDepthTest, uint
 
             if (bcScreen.x >= 0 && bcScreen.y >= 0 && bcScreen.z >= 0) {
                 bcScreen_SIMD = _mm_load_ps(bcScreen.data);
+
                 __m128 bcClip_SIMD = _mm_mul_ps(bcScreen_SIMD, invABCz_SIMD);
                 Vec4f bcClip;
                 _mm_store_ps(bcClip.data, bcClip_SIMD);
@@ -178,18 +179,14 @@ void drawTriangleBarycentricSIMD(const Vec2i &bufferSize, bool isDepthTest, uint
                     gDepthBuffer[idx] = depth;
                 }
 
-                __m128 r = _mm_dp_ps(bcScreen_SIMD, BCAr_SIMD, 0x71);
-                __m128 g = _mm_dp_ps(bcScreen_SIMD, BCAg_SIMD, 0x72);
-                __m128 b = _mm_dp_ps(bcScreen_SIMD, BCAb_SIMD, 0x74);
-                __m128 a = _mm_dp_ps(bcScreen_SIMD, BCAa_SIMD, 0x78);
+                __m128 rgba = _mm_dp_ps(bcScreen_SIMD, BCAr_SIMD, 0x71);
+                rgba = _mm_add_ps(rgba, _mm_dp_ps(bcScreen_SIMD, BCAg_SIMD, 0x72));
+                rgba = _mm_add_ps(rgba, _mm_dp_ps(bcScreen_SIMD, BCAb_SIMD, 0x74));
+                rgba = _mm_add_ps(rgba, _mm_dp_ps(bcScreen_SIMD, BCAa_SIMD, 0x78));
 
-                __m128 rgba = _mm_add_ps(r, g);
-                rgba = _mm_add_ps(rgba, b);
-                rgba = _mm_add_ps(rgba, a);
-
-                __m128i y = _mm_cvtps_epi32(rgba); // Convert them to 32-bit ints
-                y = _mm_packus_epi32(y, y); // Pack down to 16 bits
-                y = _mm_packus_epi16(y, y); // Pack down to 8 bits
+                __m128i y = _mm_cvtps_epi32(rgba);
+                y = _mm_packus_epi32(y, y);
+                y = _mm_packus_epi16(y, y);
                 gColorBuffer[idx].rgba = _mm_cvtsi128_si32(y);
             }
         }
