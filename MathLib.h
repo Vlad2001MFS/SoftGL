@@ -34,7 +34,7 @@ typedef struct vglColor {
 
 #define VGL_COLOR(r, g, b, a) ((vglColor){ r, g, b, a })
 #define VGL_COLOR_SET(out, nr, ng, nb, na) { (out).r = nr; (out).g = ng; (out).b = nb; (out).a = na; }
-#define VGL_COLOR_SET_FLOAT4(out, nr, ng, nb, na) VGL_COLOR_SET((nr)*255, (ng)*255, (nb)*255, (na)*255)
+#define VGL_COLOR_SET_FLOAT4(out, nr, ng, nb, na) VGL_COLOR_SET(out, (nr)*255, (ng)*255, (nb)*255, (na)*255)
 #define VGL_COLOR_EQUAL(lhs, rhs) ((lhs).rgba == (rhs).rgba)
 
 // ##################################################################################
@@ -292,7 +292,7 @@ typedef struct vglMat4f {
     const float s = sinf(angle); \
 \
     vglVec3f axis = { nx, ny, nz }; \
-    VGL_VEC3_NORMALIZE(axis axis); \
+    VGL_VEC3_NORMALIZE(axis, axis); \
 \
     vglVec3f temp;                 \
     VGL_VEC3_MUL_SCALAR(temp, axis, 1 - c); \
