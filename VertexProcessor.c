@@ -26,7 +26,7 @@ void vglVPProcess() {
     VGL_MAT4_MUL(mvp, gCurrentState->projMat, gCurrentState->modelViewMat);
     for (size_t i = 0; i < gVerticesCount; i++) {
         vglVertex *v = gVertices + i;
-        vglVec4f pos;
+        vglVec4f pos = { 0 };
         VGL_MAT4_MUL_VEC4(pos, mvp, v->pos);
         VGL_VEC4_DIV_SCALAR(pos, pos, pos.w);
         VGL_MAT4_MUL_VEC4(v->pos, vpMat, pos);
