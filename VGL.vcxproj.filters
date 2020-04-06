@@ -13,6 +13,6 @@
     <ClInclude Include="VGLInternal.hpp" />
     <ClInclude Include="GLInternal.hpp" />
     <ClInclude Include="VertexProcessor.hpp" />
-    <ClInclude Include="Math.h" />
+    <ClInclude Include="MathLib.h" />
   </ItemGroup>
 </Project>

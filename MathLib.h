@@ -32,6 +32,7 @@ typedef struct vglColor {
     };
 } vglColor;
 
+#define VGL_COLOR(r, g, b, a) ((vglColor){ r, g, b, a })
 #define VGL_COLOR_SET_FLOAT4(self, nr, ng, nb, na) { (self).r = (nr)*255; (self).g = (ng)*255; (self).b = (nb)*255; (self).a = (na)*255; }
 #define VGL_COLOR_EQUAL(lhs, rhs) ((lhs).rgba == (rhs).rgba)
 
@@ -56,6 +57,11 @@ typedef struct vglVec2f {
         float data[2];
     };
 } vglVec2f, __declspec(align(16)) vglAlignedVec2f;
+
+#define VGL_VEC2I(x, y) ((vglVec2i){ x, y })
+#define VGL_VEC2F(x, y) ((vglVec2f){ x, y })
+#define VGL_ALIGNED_VEC2I(x, y) ((vglAlignedVec2i){ x, y })
+#define VGL_ALIGNED_VEC2F(x, y) ((vglAlignedVec2f){ x, y })
 
 #define VGL_VEC2_MIN(a, b) _Generic((a), \
     vglVec2i: ((vglVec2i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y) }), \
@@ -108,6 +114,11 @@ typedef struct vglVec3f {
     };
 } vglVec3f, __declspec(align(16)) vglAlignedVec3f;
 
+#define VGL_VEC3I(x, y, z) ((vglVec3i){ x, y, z })
+#define VGL_VEC3F(x, y, z) ((vglVec3f){ x, y, z })
+#define VGL_ALIGNED_VEC3I(x, y, z) ((vglAlignedVec3i){ x, y, z })
+#define VGL_ALIGNED_VEC3F(x, y, z) ((vglAlignedVec3f){ x, y, z })
+
 #define VGL_VEC3_MIN(a, b) _Generic((a), \
     vglVec3i: ((vglVec3i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z) }), \
     vglVec3f: ((vglVec3f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z) })  \
@@ -159,6 +170,11 @@ typedef struct vglVec4f {
     };
 } vglVec4f, __declspec(align(16)) vglAlignedVec4f;
 
+#define VGL_VEC4I(x, y, z, w) ((vglVec4i){ x, y, z, w })
+#define VGL_VEC4F(x, y, z, w) ((vglVec4f){ x, y, z, w })
+#define VGL_ALIGNED_VEC4I(x, y, z, w) ((vglAlignedVec4i){ x, y, z, w })
+#define VGL_ALIGNED_VEC4F(x, y, z, w) ((vglAlignedVec4f){ x, y, z, w })
+
 #define VGL_VEC4_MIN(a, b) _Generic((a), \
     vglVec4i: ((vglVec4i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) }), \
     vglVec4f: ((vglVec4f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) })  \
@@ -200,6 +216,9 @@ typedef struct vglFloatRect {
     vglVec2f min, max;
 } vglFloatRect;
 
+#define VGL_INT_RECT(minX, minY, maxX, maxY) ((vglIntRect){ VGL_VEC2I(minX, minY), VGL_VEC2I(maxX, maxY) })
+#define VGL_FLOAT_RECT(minX, minY, maxX, maxY) ((vglFloatRect){ VGL_VEC2F(minX, minY), VGL_VEC2F(maxX, maxY) })
+
 #define VGL_RECT_SET4(out, minX, minY, maxX, maxY) { (out).min.x = minX; (out).min.y = minY; (out).max.x = maxX; (out).max.y = maxY; }
 #define VGL_RECT_SET2(out, nmin, nmax) { (out).min = nmin; (out).max = nmax; }
 
@@ -228,6 +247,14 @@ typedef struct vglMat4 {
         float data[16];
     };
 } vglMat4;
+
+#define VGL_MAT4(nm11, nm12, nm13, nm14,   nm21, nm22, nm23, nm24,   nm31, nm32, nm33, nm34,   nm41, nm42, nm43, nm44) \
+    ((vglMat4) { \
+        nm11, nm12, nm13, nm14, \
+        nm21, nm22, nm23, nm24, \
+        nm31, nm32, nm33, nm34, \
+        nm41, nm42, nm43, nm44  \
+    })
 
 #define VGL_MAT4_SET(out,   nm11, nm12, nm13, nm14,   nm21, nm22, nm23, nm24,   nm31, nm32, nm33, nm34,   nm41, nm42, nm43, nm44) { \
     (out).m11 = nm11; (out).m21 = nm21; (out).m31 = nm31; (out).m41 = nm41; \
