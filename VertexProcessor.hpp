@@ -2,7 +2,7 @@
 #include "Math.hpp"
 #include <vector>
 
-struct Vertex {
+struct __declspec(align(16)) Vertex {
     Vec4f pos;
     Color color;
 };
