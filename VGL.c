@@ -8,8 +8,8 @@ vglGLContext *gCurrentContext = NULL;
 
 vglGLContext *vglContextCreate(int w, int h) {
     vglGLContext *ctx = calloc(1, sizeof(vglGLContext));
-    vglContextResizeBuffers(ctx, w, h);
     vglGLStateSetDefault(&ctx->state);
+    vglContextResizeBuffers(ctx, w, h);
     return ctx;
 }
 
@@ -24,12 +24,13 @@ void vglContextMakeCurrent(vglGLContext *ctx) {
     if (ctx) {
         gCurrentContext = ctx;
         gCurrentState = &ctx->state;
-        rsSetFramebuffer(ctx->bufferRect, ctx->colorBufferData, ctx->depthBufferData);
+        vglRSSetFramebuffer(&ctx->bufferRect, ctx->colorBufferData, ctx->depthBufferData);
     }
     else {
         gCurrentContext = NULL;
         gCurrentState = NULL;
-        rsSetFramebuffer(VGL_INT_RECT(0, 0, 0, 0), NULL, NULL);
+        const vglIntRect rect = { 0, 0, 0, 0 };
+        vglRSSetFramebuffer(&rect, NULL, NULL);
     }
 }
 
@@ -44,8 +45,8 @@ void vglContextResizeBuffers(vglGLContext *ctx, int w, int h) {
 }
 
 void vglContextGetColorBuffer(vglGLContext *ctx, void **colorBuffer, int *pitch) {
-    colorBuffer = ctx->colorBufferData;
+    *colorBuffer = ctx->colorBufferData;
     vglVec2i bufferSize;
     VGL_RECT_GET_SIZE(bufferSize, ctx->bufferRect);
-    pitch = bufferSize.x*sizeof(ctx->colorBufferData[0]);
+    *pitch = bufferSize.x*sizeof(ctx->colorBufferData[0]);
 }

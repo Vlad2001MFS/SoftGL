@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef GLAPI
 #   define GLAPI
 #endif
@@ -78,3 +82,7 @@ GLAPI void APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat
 GLAPI void APIENTRY glVertex3f (GLfloat x, GLfloat y, GLfloat z);
 GLAPI void APIENTRY glVertex4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 GLAPI void APIENTRY glEnd (void);
+
+#ifdef __cplusplus
+}
+#endif

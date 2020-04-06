@@ -24,26 +24,26 @@ void vglGLStateSetDefault(vglGLState *state) {
 // ############################################################################################
 
 GLAPI void glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
-    VGL_COLOR_SET_FLOAT4(gCurrentState->clearColor, red, green, blue, alpha);
+    VGL_COLOR_SET_FLOAT4(gCurrentState->clearColor, (uint8_t)red, (uint8_t)green, (uint8_t)blue, (uint8_t)alpha);
 }
 
 GLAPI void glClearDepth(GLclampd depth) {
-    gCurrentState->clearDepth = depth;
+    gCurrentState->clearDepth = (float)depth;
 }
 
 GLAPI void glClear(GLbitfield mask) {
     if (mask & GL_COLOR_BUFFER_BIT) {
-        rsClearColor(gCurrentState->clearColor);
+        vglRSClearColor(&gCurrentState->clearColor);
     }
     if (mask & GL_DEPTH_BUFFER_BIT) {
-        rsClearDepth(gCurrentState->clearDepth);
+        vglRSClearDepth(gCurrentState->clearDepth);
     }
 }
 
 // ############################################################################################
 
 GLAPI void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
-    VGL_RECT_SET4(gCurrentState->viewport, x, y, width, height);
+    VGL_RECT_SET4_SIZED(gCurrentState->viewport, x, y, width, height);
 }
 
 GLAPI void glEnable(GLenum cap) {
@@ -141,6 +141,6 @@ GLAPI void glEnd(void) {
     if (gCurrentState->primType == GL_QUADS) {
         gCurrentState->primType = GL_TRIANGLES;
     }
-    vpProcess();
+    vglVPProcess();
     gCurrentState->primType = 0;
 }
