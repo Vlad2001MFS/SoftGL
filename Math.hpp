@@ -244,6 +244,9 @@ struct Vec2 {
 using Vec2i = Vec2<int>;
 using Vec2f = Vec2<float>;
 
+using AlignedVec2i = __declspec(align(16)) Vec2<int>;
+using AlignedVec2f = __declspec(align(16)) Vec2<float>;
+
 // ##################################################################################
 // ### Vec3
 // ##################################################################################
@@ -385,6 +388,9 @@ struct Vec3 {
 
 using Vec3i = Vec3<int>;
 using Vec3f = Vec3<float>;
+
+using AlignedVec3i = __declspec(align(16)) Vec3<int>;
+using AlignedVec3f = __declspec(align(16)) Vec3<float>;
 
 // ##################################################################################
 // ### Vec4
@@ -541,6 +547,9 @@ struct Vec4 {
 
 using Vec4i = Vec4<int>;
 using Vec4f = Vec4<float>;
+
+using AlignedVec4i = __declspec(align(16)) Vec4<int>;
+using AlignedVec4f = __declspec(align(16)) Vec4<float>;
 
 // ##################################################################################
 // ### Rect
