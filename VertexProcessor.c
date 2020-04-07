@@ -19,17 +19,22 @@ void vglVPProcess() {
     vglVec2i vpSize;
     VGL_RECT_GET_SIZE(vpSize, gCurrentState->viewport);
 
-    vglMat4f vpMat;
-    VGL_MAT4_SET_VIEWPORT(vpMat, vpPos.x, vpPos.y, vpSize.x, vpSize.y);
+    //vglMat4f vpMat;
+    ///VGL_MAT4_SET_VIEWPORT(vpMat, vpPos.x, vpPos.y, vpSize.x, vpSize.y);
 
     vglMat4f mvp;
     VGL_MAT4_MUL(mvp, gCurrentState->projMat, gCurrentState->modelViewMat);
     for (size_t i = 0; i < gVerticesCount; i++) {
         vglVertex *v = gVertices + i;
-        vglVec4f pos = { 0 };
+        vglVec4f pos = { 0, 0, 0, 0 };
         VGL_MAT4_MUL_VEC4(pos, mvp, v->pos);
         VGL_VEC4_DIV_SCALAR(pos, pos, pos.w);
-        VGL_MAT4_MUL_VEC4(v->pos, vpMat, pos);
+        //VGL_MAT4_MUL_VEC4(v->pos, vpMat, pos);
+        VGL_VEC4_ADD_SCALAR(v->pos, pos, 1);
+        VGL_VEC4_DIV_SCALAR(v->pos, v->pos, 2);
+        v->pos.y = 1.0f - v->pos.y;
+        VGL_VEC2_MUL(v->pos, v->pos, vpSize);
+        VGL_VEC2_ADD(v->pos, v->pos, vpPos);
     }
 
     vglRSProcess();

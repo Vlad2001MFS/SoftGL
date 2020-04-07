@@ -109,7 +109,7 @@ typedef __declspec(align(16)) struct vglAlignedVec2f {
 #define VGL_VEC2_ADD_SCALAR(out, a, b) { (out).x = (a).x + (b); (out).y = (a).y + (b); }
 #define VGL_VEC2_SUB_SCALAR(out, a, b) { (out).x = (a).x - (b); (out).y = (a).y - (b); }
 #define VGL_VEC2_MUL_SCALAR(out, a, b) { (out).x = (a).x * (b); (out).y = (a).y * (b); }
-#define VGL_VEC2_DIV_SCALAR(out, a, b) { (out).x = (a).x / (b); (out).y = (a).y / (b); }
+#define VGL_VEC2_DIV_SCALAR(out, a, b) { float inv = 1.0f / (b); VGL_VEC2_MUL_SCALAR(out, a, inv); }
 
 // ##################################################################################
 // ### Vec3
@@ -182,7 +182,7 @@ typedef __declspec(align(16)) struct vglAlignedVec3f {
 #define VGL_VEC3_ADD_SCALAR(out, a, b) { (out).x = (a).x + (b); (out).y = (a).y + (b); (out).z = (a).z + (b); }
 #define VGL_VEC3_SUB_SCALAR(out, a, b) { (out).x = (a).x - (b); (out).y = (a).y - (b); (out).z = (a).z - (b); }
 #define VGL_VEC3_MUL_SCALAR(out, a, b) { (out).x = (a).x * (b); (out).y = (a).y * (b); (out).z = (a).z * (b); }
-#define VGL_VEC3_DIV_SCALAR(out, a, b) { (out).x = (a).x / (b); (out).y = (a).y / (b); (out).z = (a).z / (b); }
+#define VGL_VEC3_DIV_SCALAR(out, a, b) { float inv = 1.0f / (b); VGL_VEC3_MUL_SCALAR(out, a, inv); }
 
 // ##################################################################################
 // ### Vec4
@@ -255,7 +255,7 @@ typedef __declspec(align(16)) struct vglAlignedVec4f {
 #define VGL_VEC4_ADD_SCALAR(out, a, b) { (out).x = (a).x + (b); (out).y = (a).y + (b); (out).z = (a).z + (b); (out).w = (a).w + (b); }
 #define VGL_VEC4_SUB_SCALAR(out, a, b) { (out).x = (a).x - (b); (out).y = (a).y - (b); (out).z = (a).z - (b); (out).w = (a).w - (b); }
 #define VGL_VEC4_MUL_SCALAR(out, a, b) { (out).x = (a).x * (b); (out).y = (a).y * (b); (out).z = (a).z * (b); (out).w = (a).w * (b); }
-#define VGL_VEC4_DIV_SCALAR(out, a, b) { (out).x = (a).x / (b); (out).y = (a).y / (b); (out).z = (a).z / (b); (out).w = (a).w / (b); }
+#define VGL_VEC4_DIV_SCALAR(out, a, b) { float inv = 1.0f / (b); VGL_VEC4_MUL_SCALAR(out, a, inv); }
 
 // ##################################################################################
 // ### Rect
@@ -383,7 +383,7 @@ typedef struct vglMat4f {
     (out).m34 = - (2.0f * (zFar) * (zNear)) / ((zFar) - (zNear)); \
 }
 
-#define VGL_MAT4_SET_VIEWPORT(out, nx, ny, nw, nh) { \
+/*#define VGL_MAT4_SET_VIEWPORT(out, nx, ny, nw, nh) { \
     const float a = ((nw) - 1.0f) / 2.0f; \
     const float b = ((nh) - 1.0f) / 2.0f; \
     VGL_MAT4_SET(out, \
@@ -392,7 +392,7 @@ typedef struct vglMat4f {
         0,  0, 1, 0, \
         0,  0, 0, 1 \
     ); \
-}
+}*/
 
 #define VGL_MAT4_GET(mat, r, c) ((mat).cols[c].data[r])
 
