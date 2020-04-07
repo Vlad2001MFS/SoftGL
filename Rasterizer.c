@@ -123,15 +123,12 @@ void drawTriangleBarycentric(const vglVec2i *vpMin, const vglVec2i *vpMax, const
         for (int y = min.y; y <= max.y; ++y) {
             PA.y = A->pos.y - y;
 
-            uint8_t *colorBuffer = gColorBuffer + y*gBufferSize.x + min.x;
-            float *depthBuffer = gDepthBuffer + y*gBufferSize.x + min.x;
+            const uint32_t idx = y*gBufferSize.x + min.x;
+            uint8_t *colorBuffer = gColorBuffer + idx;
+            float *depthBuffer = gDepthBuffer + idx;
 
-            for (int x = min.x; x <= max.x; ++x) {
+            for (int x = min.x; x <= max.x; ++x, colorBuffer += 4, ++depthBuffer) {
                 PA.x = A->pos.x - x;
-
-                uint8_t *dstColor = colorBuffer;
-                colorBuffer += 4;
-                float *dstDepth = depthBuffer++;
 
                 bcScreen.x = (PA.x*AC.y - AC.x*PA.y)*bcInvW;
                 if (bcScreen.x >= 0.0f) {
@@ -148,17 +145,17 @@ void drawTriangleBarycentric(const vglVec2i *vpMin, const vglVec2i *vpMax, const
                                 const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
 
                                 bool depthTestResult = true;
-                                COMPARE_FUNC(depthTestResult, depthFunc, depth, *dstDepth);
+                                COMPARE_FUNC(depthTestResult, depthFunc, depth, *depthBuffer);
                                 if (!depthTestResult) {
                                     continue;
                                 }
-                                *dstDepth = depth;
+                                *depthBuffer = depth;
                             }
 
-                            dstColor[0] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[0]);
-                            dstColor[1] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[1]);
-                            dstColor[2] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[2]);
-                            dstColor[3] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[3]);
+                            colorBuffer[0] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[0]);
+                            colorBuffer[1] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[1]);
+                            colorBuffer[2] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[2]);
+                            colorBuffer[3] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[3]);
                         }
                     }
                 }
