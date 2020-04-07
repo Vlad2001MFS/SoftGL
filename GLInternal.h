@@ -16,7 +16,7 @@ typedef struct vglGLState {
     uint32_t caps;
 
     vglColor imColor;
-    uint32_t imQuadVertsCounter;
+    uint8_t imQuadVertsCounter;
     uint32_t primType;
 } vglGLState;
 

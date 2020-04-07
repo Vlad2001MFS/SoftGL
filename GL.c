@@ -118,18 +118,15 @@ GLAPI void glVertex3f(GLfloat x, GLfloat y, GLfloat z) {
 }
 
 GLAPI void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
-    vglVertex v;
-    VGL_VEC4_SET(v.pos, x, y, z, w);
-    v.color = gCurrentState->imColor;
-    vglVPAddVertex(&v);
+    vglVertex *v = vglVPNewVertex();
+    VGL_VEC4_SET(v->pos, x, y, z, w);
+    v->color = gCurrentState->imColor;
 
     if (gCurrentState->primType == GL_QUADS) {
         gCurrentState->imQuadVertsCounter++;
         if (gCurrentState->imQuadVertsCounter == 3) {
-            size_t vert4Idx = vglVPGetVerticesCount() - 3;
-            size_t vert5Idx = vglVPGetVerticesCount() - 1;
-            vglVPAddVertex(&vglVPGetVertices()[vert4Idx]);
-            vglVPAddVertex(&vglVPGetVertices()[vert5Idx]);
+            vglVPCopyVertex(vglVPGetVerticesCount() - 3); // Vertex 4
+            vglVPCopyVertex(vglVPGetVerticesCount() - 2); // Vertex 5
         }
         else if (gCurrentState->imQuadVertsCounter == 4) {
             gCurrentState->imQuadVertsCounter = 0;

@@ -6,7 +6,8 @@ typedef struct vglVertex {
     vglColor color;
 } vglVertex;
 
-void vglVPAddVertex(const vglVertex *v);
+vglVertex *vglVPNewVertex();
+void vglVPCopyVertex(size_t idx);
 void vglVPProcess();
 
 const vglVertex *vglVPGetVertices();

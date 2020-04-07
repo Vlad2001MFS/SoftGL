@@ -383,16 +383,13 @@ typedef struct vglMat4f {
     (out).m34 = - (2.0f * (zFar) * (zNear)) / ((zFar) - (zNear)); \
 }
 
-/*#define VGL_MAT4_SET_VIEWPORT(out, nx, ny, nw, nh) { \
-    const float a = ((nw) - 1.0f) / 2.0f; \
-    const float b = ((nh) - 1.0f) / 2.0f; \
-    VGL_MAT4_SET(out, \
-        a,  0, 0, a, \
-        0, -b, 0, b, \
-        0,  0, 1, 0, \
-        0,  0, 0, 1 \
+#define VGL_MAT4_SET_VIEWPORT(out, nx, ny, nw, nh) { VGL_MAT4_SET(out, \
+        0.5f*(nw),  0.0f,      0.0f, 0.5f*(nw) + (nx), \
+        0.0f,      -0.5f*(nh), 0.0f, 0.5f*(nh) + (ny), \
+        0.0f,       0.0f,      0.5f, 0.5f,             \
+        0.0f,       0.0f,      0.0f, 0.5f              \
     ); \
-}*/
+}
 
 #define VGL_MAT4_GET(mat, r, c) ((mat).cols[c].data[r])
 
@@ -409,6 +406,7 @@ typedef struct vglMat4f {
 
 #define VGL_MAT4_MUL_VEC4(out, a, b) { \
     for (int r = 0; r < 4; r++) { \
+        (out).data[r] = 0; \
         for (int c = 0; c < 4; c++) { \
             (out).data[r] += VGL_MAT4_GET(a, r, c)*(b).data[c]; \
         } \
