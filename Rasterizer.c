@@ -109,45 +109,52 @@ void drawTriangleBarycentric(const vglVec2i *vpMin, const vglVec2i *vpMax, const
     const uint32_t depthFunc = gCurrentState->depthFunc;
 
     vglVec4f AC, AB;
-    VGL_VEC4_SUB(AC, C->pos, A->pos);
-    VGL_VEC4_SUB(AB, B->pos, A->pos);
+    VGL_VEC2_SUB(AC, C->pos, A->pos);
+    VGL_VEC2_SUB(AB, B->pos, A->pos);
 
     const float bcW = AB.x*AC.y - AC.x*AB.y;
     const float bcInvW = 1.0f / bcW;
 
-    for (int y = min.y; y <= max.y; y++) {
-        const int PAy = A->pos.y - y;
+    vglVec4f bcScreen = { 0, 0, 0, 0 };
+    vglVec4f bcClip = { 0, 0, 0, 0 };
 
-        for (int x = min.x; x <= max.x; x++) {
-            const int PAx = A->pos.x - x;
+    for (int y = min.y; y <= max.y; ++y) {
+        const float PAy = A->pos.y - y;
 
-            const float bcU = AC.x*PAy - PAx*AC.y;
-            const float bcV = PAx*AB.y - AB.x*PAy;
+        uint8_t *colorBuffer = gColorBuffer + y*gBufferSize.x + min.x;
+        float *depthBuffer = gDepthBuffer + y*gBufferSize.x + min.x;
 
-            vglVec4f bcScreen = { bcU, bcV, 0.0f, 0.0f };
-            VGL_VEC4_MUL_SCALAR(bcScreen, bcScreen, bcInvW);
+        for (int x = min.x; x <= max.x; ++x) {
+            const float PAx = A->pos.x - x;
+
+            bcScreen.x = AC.x*PAy - PAx*AC.y;
+            bcScreen.y = PAx*AB.y - AB.x*PAy;
+
+            VGL_VEC2_MUL_SCALAR(bcScreen, bcScreen, bcInvW);
             bcScreen.z = 1.0f - bcScreen.x - bcScreen.y;
 
             if (bcScreen.x >= 0 && bcScreen.y >= 0 && bcScreen.z >= 0) {
-                vglVec4f bcClip;
-                VGL_VEC4_MUL(bcClip, bcScreen, invABCz);
-                VGL_VEC4_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
+                VGL_VEC3_MUL(bcClip, bcScreen, invABCz);
+                VGL_VEC3_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
 
-                const uint32_t idx = x + y*gBufferSize.x;
                 if (isDepthTest) {
                     const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
                     bool depthTestResult = true;
-                    COMPARE_FUNC(depthTestResult, depthFunc, depth, gDepthBuffer[idx]);
+                    COMPARE_FUNC(depthTestResult, depthFunc, depth, *depthBuffer);
                     if (!depthTestResult) {
                         continue;
                     }
-                    gDepthBuffer[idx] = depth;
+                    *depthBuffer++ = depth;
                 }
 
-                gColorBuffer[idx].data[0] = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[0]);
-                gColorBuffer[idx].data[1] = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[1]);
-                gColorBuffer[idx].data[2] = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[2]);
-                gColorBuffer[idx].data[3] = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[3]);
+                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[0]);
+                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[1]);
+                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[2]);
+                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[3]);
+            }
+            else {
+                colorBuffer += 4;
+                depthBuffer++;
             }
         }
     }
@@ -239,7 +246,7 @@ void processTriangles() {
         const vglVertex *B = verts + i + 1;
         const vglVertex *C = verts + i + 2;
 
-        drawTriangleBarycentricSIMD(&vpMin, &vpMax, A, B, C);
+        drawTriangleBarycentric(&vpMin, &vpMax, A, B, C);
     }
 }
 
