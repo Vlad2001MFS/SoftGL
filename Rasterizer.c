@@ -91,70 +91,77 @@ void vglRSClearDepth(float depth) {
 }
 
 void drawTriangleBarycentric(const vglVec2i *vpMin, const vglVec2i *vpMax, const vglVertex *A, const vglVertex *B, const vglVertex *C) {
-    const vglVec4f colorBCA[] = {
-        VGL_VEC4F(B->color.r, C->color.r, A->color.r, 0.0f),
-        VGL_VEC4F(B->color.g, C->color.g, A->color.g, 0.0f),
-        VGL_VEC4F(B->color.b, C->color.b, A->color.b, 0.0f),
-        VGL_VEC4F(B->color.a, C->color.a, A->color.a, 0.0f),
-    };
-
-    const vglVec2i triMin = VGL_VEC2I_MIN3(A->pos, B->pos, C->pos);
-    const vglVec2i triMax = VGL_VEC2I_MAX3(A->pos, B->pos, C->pos);
-    const vglVec2i min = VGL_VEC2I_CLAMP(triMin, *vpMin, *vpMax);
-    const vglVec2i max = VGL_VEC2I_CLAMP(triMax, *vpMin, *vpMax);
-
-    const vglVec4f invABCz = { 1.0f / A->pos.z, 1.0f / B->pos.z, 1.0f / C->pos.z, 0.0f };
-
-    const bool isDepthTest = gCurrentState->caps & GL_DEPTH_TEST;
-    const uint32_t depthFunc = gCurrentState->depthFunc;
-
-    vglVec4f AC, AB;
+    vglVec2f AC, AB;
     VGL_VEC2_SUB(AC, C->pos, A->pos);
     VGL_VEC2_SUB(AB, B->pos, A->pos);
 
-    const float bcW = AB.x*AC.y - AC.x*AB.y;
-    const float bcInvW = 1.0f / bcW;
+    const float bcW = AC.x*AB.y - AB.x*AC.y;
+    if (bcW >= 1.0f) { // back-face culling
+        const float bcInvW = 1.0f / bcW;
 
-    vglVec4f bcScreen = { 0, 0, 0, 0 };
-    vglVec4f bcClip = { 0, 0, 0, 0 };
+        const vglVec3f colorBCA[] = {
+            VGL_VEC3F(B->color.r, C->color.r, A->color.r),
+            VGL_VEC3F(B->color.g, C->color.g, A->color.g),
+            VGL_VEC3F(B->color.b, C->color.b, A->color.b),
+            VGL_VEC3F(B->color.a, C->color.a, A->color.a),
+        };
 
-    for (int y = min.y; y <= max.y; ++y) {
-        const float PAy = A->pos.y - y;
+        const vglVec2i triMin = VGL_VEC2I_MIN3(A->pos, B->pos, C->pos);
+        const vglVec2i triMax = VGL_VEC2I_MAX3(A->pos, B->pos, C->pos);
+        const vglVec2i min = VGL_VEC2I_CLAMP(triMin, *vpMin, *vpMax);
+        const vglVec2i max = VGL_VEC2I_CLAMP(triMax, *vpMin, *vpMax);
 
-        uint8_t *colorBuffer = gColorBuffer + y*gBufferSize.x + min.x;
-        float *depthBuffer = gDepthBuffer + y*gBufferSize.x + min.x;
+        const vglVec3f invABCz = { 1.0f / B->pos.z, 1.0f / C->pos.z, 1.0f / A->pos.z };
 
-        for (int x = min.x; x <= max.x; ++x) {
-            const float PAx = A->pos.x - x;
+        const bool isDepthTest = gCurrentState->caps & GL_DEPTH_TEST;
+        const uint32_t depthFunc = gCurrentState->depthFunc;
 
-            bcScreen.x = AC.x*PAy - PAx*AC.y;
-            bcScreen.y = PAx*AB.y - AB.x*PAy;
+        vglVec3f bcScreen = { 0, 0, 0 };
+        vglVec3f bcClip = { 0, 0, 0 };
 
-            VGL_VEC2_MUL_SCALAR(bcScreen, bcScreen, bcInvW);
-            bcScreen.z = 1.0f - bcScreen.x - bcScreen.y;
+        vglVec2f PA;
+        for (int y = min.y; y <= max.y; ++y) {
+            PA.y = A->pos.y - y;
 
-            if (bcScreen.x >= 0 && bcScreen.y >= 0 && bcScreen.z >= 0) {
-                VGL_VEC3_MUL(bcClip, bcScreen, invABCz);
-                VGL_VEC3_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
+            uint8_t *colorBuffer = gColorBuffer + y*gBufferSize.x + min.x;
+            float *depthBuffer = gDepthBuffer + y*gBufferSize.x + min.x;
 
-                if (isDepthTest) {
-                    const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
-                    bool depthTestResult = true;
-                    COMPARE_FUNC(depthTestResult, depthFunc, depth, *depthBuffer);
-                    if (!depthTestResult) {
-                        continue;
-                    }
-                    *depthBuffer++ = depth;
-                }
+            for (int x = min.x; x <= max.x; ++x) {
+                PA.x = A->pos.x - x;
 
-                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[0]);
-                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[1]);
-                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[2]);
-                *colorBuffer++ = (uint8_t)VGL_VEC4_DOT(bcScreen, colorBCA[3]);
-            }
-            else {
+                uint8_t *dstColor = colorBuffer;
                 colorBuffer += 4;
-                depthBuffer++;
+                float *dstDepth = depthBuffer++;
+
+                bcScreen.x = (PA.x*AC.y - AC.x*PA.y)*bcInvW;
+                if (bcScreen.x >= 0.0f) {
+
+                    bcScreen.y = (AB.x*PA.y - PA.x*AB.y)*bcInvW;
+                    if (bcScreen.y >= 0.0f) {
+
+                        bcScreen.z = 1.0f - bcScreen.x - bcScreen.y;
+                        if (bcScreen.z >= 0.0f) {
+                            VGL_VEC3_MUL(bcClip, bcScreen, invABCz);
+                            VGL_VEC3_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
+
+                            if (isDepthTest) {
+                                const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
+
+                                bool depthTestResult = true;
+                                COMPARE_FUNC(depthTestResult, depthFunc, depth, *dstDepth);
+                                if (!depthTestResult) {
+                                    continue;
+                                }
+                                *dstDepth = depth;
+                            }
+
+                            dstColor[0] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[0]);
+                            dstColor[1] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[1]);
+                            dstColor[2] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[2]);
+                            dstColor[3] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[3]);
+                        }
+                    }
+                }
             }
         }
     }
