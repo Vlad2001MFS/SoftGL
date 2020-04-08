@@ -294,26 +294,25 @@ typedef struct vglFloatRect {
 typedef struct vglMat4f {
     union {
         struct {
-            float m11, m21, m31, m41;
-            float m12, m22, m32, m42;
-            float m13, m23, m33, m43;
-            float m14, m24, m34, m44;
+            float m11, m12, m13, m14;
+            float m21, m22, m23, m24;
+            float m31, m32, m33, m34;
+            float m41, m42, m43, m44;
         };
         // 0 4  8 12
         // 1 5  9 13
         // 2 6 10 14
         // 3 7 11 15
         vglVec4f cols[4];
-        float data[16];
     };
 } vglMat4f;
 
 #define VGL_MAT4(nm11, nm12, nm13, nm14,   nm21, nm22, nm23, nm24,   nm31, nm32, nm33, nm34,   nm41, nm42, nm43, nm44) \
     ((vglMat4f) { \
-        nm11, nm12, nm13, nm14, \
-        nm21, nm22, nm23, nm24, \
-        nm31, nm32, nm33, nm34, \
-        nm41, nm42, nm43, nm44  \
+        .m11 = nm11, .m12 = nm12, .m13 = nm13, .m14 = nm14, \
+        .m21 = nm21, .m22 = nm22, .m23 = nm23, .m24 = nm24, \
+        .m31 = nm31, .m32 = nm32, .m33 = nm33, .m34 = nm34, \
+        .m41 = nm41, .m42 = nm42, .m43 = nm43, .m44 = nm44, \
     })
 
 #define VGL_MAT4_IDENTITY() VGL_MAT4(\
@@ -324,13 +323,13 @@ typedef struct vglMat4f {
 )
 
 #define VGL_MAT4_SET(out,   nm11, nm12, nm13, nm14,   nm21, nm22, nm23, nm24,   nm31, nm32, nm33, nm34,   nm41, nm42, nm43, nm44) { \
-    (out).m11 = nm11; (out).m21 = nm21; (out).m31 = nm31; (out).m41 = nm41; \
-    (out).m12 = nm12; (out).m22 = nm22; (out).m32 = nm32; (out).m42 = nm42; \
-    (out).m13 = nm13; (out).m23 = nm23; (out).m33 = nm33; (out).m43 = nm43; \
-    (out).m14 = nm14; (out).m24 = nm24; (out).m34 = nm34; (out).m44 = nm44; \
+    (out) = VGL_MAT4(nm11, nm12, nm13, nm14,  \
+                     nm21, nm22, nm23, nm24,  \
+                     nm31, nm32, nm33, nm34,  \
+                     nm41, nm42, nm43, nm44); \
 }
 
-#define VGL_MAT4_SETV(out, ptr) memcpy((out).data, ptr, sizeof((out).data))
+#define VGL_MAT4_SETV(out, ptr) memcpy(&(out), ptr, sizeof(out))
 
 #define VGL_MAT4_SET_IDENTITY(out) VGL_MAT4_SET(out, \
     1, 0, 0, 0, \
@@ -403,19 +402,19 @@ typedef struct vglMat4f {
 #define VGL_MAT4_MUL(out, a, b) { \
     for (int r = 0; r < 4; r++) { \
         for (int c = 0; c < 4; c++) { \
-            VGL_MAT4_GET(out, r, c) = 0; \
-            for (int i = 0; i < 4; i++) { \
-                VGL_MAT4_GET(out, r, c) += VGL_MAT4_GET(a, r, i)*VGL_MAT4_GET(b, i, c); \
-            } \
+            VGL_MAT4_GET(out, r, c) = VGL_MAT4_GET(b, r, 0)*VGL_MAT4_GET(a, 0, c)  \
+                                    + VGL_MAT4_GET(b, r, 1)*VGL_MAT4_GET(a, 1, c)  \
+                                    + VGL_MAT4_GET(b, r, 2)*VGL_MAT4_GET(a, 2, c)  \
+                                    + VGL_MAT4_GET(b, r, 3)*VGL_MAT4_GET(a, 3, c); \
         } \
     } \
 }
 
 #define VGL_MAT4_MUL_VEC4(out, a, b) { \
     for (int r = 0; r < 4; r++) { \
-        (out).data[r] = 0; \
-        for (int c = 0; c < 4; c++) { \
-            (out).data[r] += VGL_MAT4_GET(a, r, c)*(b).data[c]; \
-        } \
+        (out).data[r] = (a).cols[r].data[0]*(b).data[0]  \
+                      + (a).cols[r].data[1]*(b).data[1]  \
+                      + (a).cols[r].data[2]*(b).data[2]  \
+                      + (a).cols[r].data[3]*(b).data[3]; \
     } \
 }
