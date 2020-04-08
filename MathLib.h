@@ -18,6 +18,7 @@
 #define VGL_DEG(rad) ((rad)*180 / ((float)M_PI))
 #define VGL_FLT_EQUAL(a, b) (fabsf((a) - (b)) < FLT_EPSILON)
 #define VGL_FLT_NOT_EQUAL(a, b) (fabsf((a) - (b)) > FLT_EPSILON)
+#define VGL_IN_RANGE(value, min, max) ((value) >= (min) && (value) <= (max))
 
 // ##################################################################################
 // ### Color
@@ -96,6 +97,8 @@ typedef __declspec(align(16)) struct vglAlignedVec2f {
 #define VGL_VEC2I_CLAMP(value, minValue, maxValue) VGL_VEC2I_MAX(minValue, VGL_VEC2I_MIN(value, maxValue))
 #define VGL_VEC2F_CLAMP(value, minValue, maxValue) VGL_VEC2F_MAX(minValue, VGL_VEC2F_MIN(value, maxValue))
 
+#define VGL_VEC2_IN_RANGE(value, min, max) (VGL_IN_RANGE((value).x, (min).x, (max).x) && VGL_IN_RANGE((value).y, (min).y, (max).y))
+
 #define VGL_VEC2_DOT(a, b) ((a).x*(b).x + (a).y*(b).y)
 #define VGL_VEC2_LEN_SQ(a) VGL_VEC2_DOT(a, a)
 #define VGL_VEC2_LEN(a) sqrtf(VGL_VEC2_LEN_SQ(a))
@@ -169,6 +172,8 @@ typedef __declspec(align(16)) struct vglAlignedVec3f {
 #define VGL_VEC3I_CLAMP(value, minValue, maxValue) VGL_VEC3I_MAX(minValue, VGL_VEC3I_MIN(value, maxValue))
 #define VGL_VEC3F_CLAMP(value, minValue, maxValue) VGL_VEC3F_MAX(minValue, VGL_VEC3F_MIN(value, maxValue))
 
+#define VGL_VEC3_IN_RANGE(value, min, max) (VGL_IN_RANGE((value).x, (min).x, (max).x) && VGL_IN_RANGE((value).y, (min).y, (max).y) && VGL_IN_RANGE((value).z, (min).z, (max).z))
+
 #define VGL_VEC3_DOT(a, b) ((a).x*(b).x + (a).y*(b).y + (a).z*(b).z)
 #define VGL_VEC3_LEN_SQ(a) VGL_VEC3_DOT(a, a)
 #define VGL_VEC3_LEN(a) sqrtf(VGL_VEC3_LEN_SQ(a))
@@ -241,6 +246,8 @@ typedef __declspec(align(16)) struct vglAlignedVec4f {
 
 #define VGL_VEC4I_CLAMP(value, minValue, maxValue) VGL_VEC4I_MAX(minValue, VGL_VEC4I_MIN(value, maxValue))
 #define VGL_VEC4F_CLAMP(value, minValue, maxValue) VGL_VEC4F_MAX(minValue, VGL_VEC4F_MIN(value, maxValue))
+
+#define VGL_VEC4_IN_RANGE(value, min, max) (VGL_IN_RANGE((value).x, (min).x, (max).x) && VGL_IN_RANGE((value).y, (min).y, (max).y) && VGL_IN_RANGE((value).z, (min).z, (max).z) && VGL_IN_RANGE((value).w, (min).w, (max).w))
 
 #define VGL_VEC4_DOT(a, b) ((a).x*(b).x + (a).y*(b).y + (a).z*(b).z + (a).w*(b).w)
 #define VGL_VEC4_LEN_SQ(a) VGL_VEC4_DOT(a, a)

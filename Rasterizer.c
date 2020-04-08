@@ -238,14 +238,13 @@ void drawTriangleBarycentricSIMD(const vglVec2i *vpMin, const vglVec2i *vpMax, c
     }
 }
 
-void processTriangles() {
+void processTriangles(size_t verticesCount) {
     const vglVertex *verts = vglVPGetVertices();
-    size_t vertsCount = vglVPGetVerticesCount();
 
     const vglVec2i vpMin = VGL_VEC2I_CLAMP(gCurrentState->viewport.min, gCurrentContext->bufferRect.min, gCurrentContext->bufferRect.max);
     const vglVec2i vpMax = VGL_VEC2I_CLAMP(gCurrentState->viewport.max, gCurrentContext->bufferRect.min, gCurrentContext->bufferRect.max);
 
-    for (size_t i = 0; i < vertsCount; i += 3) {
+    for (size_t i = 0; i < verticesCount; i += 3) {
         const vglVertex *A = verts + i + 0;
         const vglVertex *B = verts + i + 1;
         const vglVertex *C = verts + i + 2;
@@ -254,10 +253,10 @@ void processTriangles() {
     }
 }
 
-void vglRSProcess() {
+void vglRSProcess(size_t verticesCount) {
     switch (gCurrentState->primType) {
         case GL_TRIANGLES: {
-            processTriangles();
+            processTriangles(verticesCount);
             break;
         }
     }

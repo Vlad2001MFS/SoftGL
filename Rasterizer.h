@@ -8,4 +8,4 @@ const vglIntRect *vglRSGetFramebufferRect();
 void vglRSClearColor(const vglColor *color);
 void vglRSClearDepth(float depth);
 
-void vglRSProcess();
+void vglRSProcess(size_t verticesCount);
