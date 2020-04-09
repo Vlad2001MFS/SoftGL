@@ -6,14 +6,15 @@ typedef struct vglGLState {
     vglColor clearColor;
     float clearDepth;
 
+    vglIntRect viewport;
+    uint32_t caps;
+    uint32_t shadeModel;
+    uint32_t depthFunc;
+
     uint32_t matrixMode;
     vglMat4f *currentMat;
     vglMat4f projMat;
     vglMat4f modelViewMat;
-
-    vglIntRect viewport;
-    uint32_t depthFunc;
-    uint32_t caps;
 
     vglColor imColor;
     uint8_t imQuadVertsCounter;

@@ -7,14 +7,15 @@ void vglGLStateSetDefault(vglGLState *state) {
     VGL_COLOR_SET(state->clearColor, 0, 0, 0, 255);
     state->clearDepth = 1.0f;
 
+    VGL_RECT_SET4(state->viewport, 0, 0, 0, 0);
+    state->caps = 0;
+    state->shadeModel = GL_SMOOTH;
+    state->depthFunc = GL_LESS;
+
     state->matrixMode = GL_MODELVIEW;
     state->currentMat = &state->modelViewMat;
     VGL_MAT4_SET_IDENTITY(state->projMat);
     VGL_MAT4_SET_IDENTITY(state->modelViewMat);
-
-    VGL_RECT_SET4(state->viewport, 0, 0, 0, 0);
-    state->depthFunc = GL_LESS;
-    state->caps = 0;
 
     VGL_COLOR_SET(state->imColor, 255, 255, 255, 255);
     state->imQuadVertsCounter = 0;
@@ -52,6 +53,10 @@ GLAPI void glEnable(GLenum cap) {
 
 GLAPI void glDisable(GLenum cap) {
     gCurrentState->caps &= ~cap;
+}
+
+GLAPI void glShadeModel(GLenum mode) {
+    gCurrentState->shadeModel = mode;
 }
 
 GLAPI void glDepthFunc(GLenum func) {
