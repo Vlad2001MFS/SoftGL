@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <memory.h>
 #include <float.h>
+#include <intrin.h>
 
 // ##################################################################################
 // ### Math library
@@ -411,10 +412,9 @@ typedef struct vglMat4f {
 }
 
 #define VGL_MAT4_MUL_VEC4(out, a, b) { \
-    for (int r = 0; r < 4; r++) { \
-        (out).data[r] = (a).cols[r].data[0]*(b).data[0]  \
-                      + (a).cols[r].data[1]*(b).data[1]  \
-                      + (a).cols[r].data[2]*(b).data[2]  \
-                      + (a).cols[r].data[3]*(b).data[3]; \
-    } \
+    __m128 __v__ = _mm_load_ps((b).data); \
+    _mm_store_ss((out).data + 0, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 0), 0xF1)); \
+    _mm_store_ss((out).data + 1, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 1), 0xF1)); \
+    _mm_store_ss((out).data + 2, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 2), 0xF1)); \
+    _mm_store_ss((out).data + 3, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 3), 0xF1)); \
 }
