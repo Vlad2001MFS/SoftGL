@@ -31,7 +31,7 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
             VGL_VEC3F((1.0f - B->texCoord.y)*textureSize.y, (1.0f - C->texCoord.y)*textureSize.y, (1.0f - A->texCoord.y)*textureSize.y)
         };
 
-        vglVec2f texCoord = { 0, 0 };
+        vglVec2i texCoord = { 0, 0 };
 
         float inv255 = 1.0f / 255.0f;
 #endif
@@ -91,14 +91,13 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
                             *((vglColor*)colorBuffer) = A->color;
 #endif
 #if RS_TRI_TEXTURED
-                            texCoord.x = VGL_VEC3_DOT(bcClip, texCoordBCA[0]);
-                            texCoord.y = VGL_VEC3_DOT(bcClip, texCoordBCA[1]);
-                            texCoord.x = VGL_CLAMP(texCoord.x, textureMin.x, textureMax.x);
-                            texCoord.y = VGL_CLAMP(texCoord.y, textureMin.y, textureMax.y);
-                            uint8_t *texel = texture + ((int)texCoord.x) + ((int)texCoord.y)*textureSize.x;
-                            for (int i = 0; i < 4; i++) {
-                                colorBuffer[i] = (uint8_t)(((float)colorBuffer[i])*((float)texel[i])*inv255);
-                            }
+                            texCoord.x = VGL_CLAMP(VGL_VEC3_DOT(bcClip, texCoordBCA[0]), textureMin.x, textureMax.x);
+                            texCoord.y = VGL_CLAMP(VGL_VEC3_DOT(bcClip, texCoordBCA[1]), textureMin.y, textureMax.y);
+                            uint8_t *texel = texture + texCoord.x + texCoord.y*textureSize.x;
+                            colorBuffer[0] *= texel[0]*inv255;
+                            colorBuffer[1] *= texel[1]*inv255;
+                            colorBuffer[2] *= texel[2]*inv255;
+                            colorBuffer[3] *= texel[3]*inv255;
 #endif
                         }
                     }
