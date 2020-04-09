@@ -61,6 +61,17 @@ typedef void GLvoid;
 //#define GL_QUAD_STRIP                     0x0008
 //#define GL_POLYGON                        0x0009
 
+#define GL_TEXTURE_2D                     0x0DE1
+#define GL_TEXTURE_MAG_FILTER             0x2800
+#define GL_TEXTURE_MIN_FILTER             0x2801
+#define GL_NEAREST                        0x2600
+#define GL_LINEAR                         0x2601
+
+#define GL_UNSIGNED_BYTE                  0x1401
+
+#define GL_RGB                            0x1907
+#define GL_RGBA                           0x1908
+
 /*************************************************************/
 
 GLAPI void APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -83,9 +94,16 @@ GLAPI void APIENTRY glTranslatef (GLfloat x, GLfloat y, GLfloat z);
 GLAPI void APIENTRY glBegin (GLenum mode);
 GLAPI void APIENTRY glColor3f (GLfloat red, GLfloat green, GLfloat blue);
 GLAPI void APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+GLAPI void APIENTRY glTexCoord2f (GLfloat s, GLfloat t);
 GLAPI void APIENTRY glVertex3f (GLfloat x, GLfloat y, GLfloat z);
 GLAPI void APIENTRY glVertex4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 GLAPI void APIENTRY glEnd (void);
+
+GLAPI void APIENTRY glGenTextures (GLsizei n, GLuint *textures);
+GLAPI void APIENTRY glDeleteTextures (GLsizei n, const GLuint *textures);
+GLAPI void APIENTRY glBindTexture (GLenum target, GLuint texture);
+GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+GLAPI void APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param);
 
 #ifdef __cplusplus
 }

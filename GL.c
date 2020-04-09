@@ -1,5 +1,6 @@
 #include "GLInternal.h"
 #include "Rasterizer.h"
+#include "Common.h"
 
 vglGLState *gCurrentState = NULL;
 
@@ -18,8 +19,16 @@ void vglGLStateSetDefault(vglGLState *state) {
     VGL_MAT4_SET_IDENTITY(state->modelViewMat);
 
     VGL_COLOR_SET(state->imColor, 255, 255, 255, 255);
+    VGL_VEC2_SET(state->imTexCoord, 0.0f, 0.0f);
     state->imQuadVertsCounter = 0;
     state->primType = 0;
+
+    state->texture2d = &state->textures[0];
+
+    memset(state->textures, 0, sizeof(state->textures));
+    state->textures[0].target = GL_TEXTURE_2D;
+    state->textures[0].isValid = true;
+    state->texturesCount = 1;
 }
 
 // ############################################################################################
@@ -118,6 +127,10 @@ GLAPI void glColor4f(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
     VGL_COLOR_SET_FLOAT4(gCurrentState->imColor, red, green, blue, alpha);
 }
 
+GLAPI void glTexCoord2f(GLfloat s, GLfloat t) {
+    VGL_VEC2_SET(gCurrentState->imTexCoord, s, t);
+}
+
 GLAPI void glVertex3f(GLfloat x, GLfloat y, GLfloat z) {
     glVertex4f(x, y, z, 1.0f);
 }
@@ -126,6 +139,7 @@ GLAPI void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
     vglVertex *v = vglVPNewVertex();
     VGL_VEC4_SET(v->pos, x, y, z, w);
     v->color = gCurrentState->imColor;
+    v->texCoord = gCurrentState->imTexCoord;
 
     if (gCurrentState->primType == GL_QUADS) {
         gCurrentState->imQuadVertsCounter++;
@@ -145,4 +159,75 @@ GLAPI void glEnd(void) {
     }
     vglVPProcess();
     gCurrentState->primType = 0;
+}
+
+// ############################################################################################
+
+void glGenTextures(GLsizei n, GLuint *textures) {
+    int i = 0;
+    for (uint32_t j = 1; j < VGL_MAX_TEXTURES; j++) {
+        if (!gCurrentState->textures[j].isValid) {
+            gCurrentState->textures[j].isValid = true;
+            textures[i++] = j;
+        }
+        if (i == n) {
+            break;
+        }
+    }
+}
+
+void glDeleteTextures(GLsizei n, const GLuint *textures) {
+    for (int i = 0; i < n; i++) {
+        uint32_t id = textures[i];
+        if (id > 0) {
+            vglTexture *tex = gCurrentState->textures + id;
+            if (tex->target == GL_TEXTURE_2D && gCurrentState->texture2d == tex) {
+                gCurrentState->texture2d = &gCurrentState->textures[0];
+            }
+            free(tex->pixels);
+            //tex->isValid = false;
+            memset(tex, 0, sizeof(vglTexture));
+        }
+    }
+}
+
+void glBindTexture(GLenum target, GLuint texture) {
+    if (target == GL_TEXTURE_2D) {
+        gCurrentState->texture2d = gCurrentState->textures + texture;
+        if (gCurrentState->texture2d->target == 0) {
+            gCurrentState->texture2d->target = target;
+        }
+    }
+}
+
+void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels) {
+    if (target == GL_TEXTURE_2D) {
+        vglTexture *tex = gCurrentState->texture2d;
+        tex->level = level;
+        tex->internalFormat = internalformat;
+        tex->width = width;
+        tex->height = height;
+        tex->border = border;
+        tex->format = format;
+        tex->type = type;
+        tex->pixels = malloc(sizeof(vglColor)*width*height);
+        if (format == GL_RGB) {
+            uint8_t *dst = tex->pixels, *src = pixels;
+            for (int i = 0; i < width*height*3; i += 3) {
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = *src++;
+                *dst++ = 255;
+            }
+        }
+        else if (format == GL_RGBA) {
+            uint32_t *dst = tex->pixels, *src = pixels;
+            for (int i = 0; i < width*height; i++) {
+                *dst++ = *src++;
+            }
+        }
+    }
+}
+
+void glTexParameteri(GLenum target, GLenum pname, GLint param) {
 }

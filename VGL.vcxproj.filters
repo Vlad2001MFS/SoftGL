@@ -15,5 +15,6 @@
     <ClInclude Include="GL.h" />
     <ClInclude Include="VertexProcessor.h" />
     <ClInclude Include="Rasterizer.h" />
+    <ClInclude Include="RasterizeTriangle.inl" />
   </ItemGroup>
 </Project>

@@ -90,143 +90,21 @@ void vglRSClearDepth(float depth) {
     } \
 }
 
-void drawTriangleBarycentricSmooth(const vglVec2i *vpMin, const vglVec2i *vpMax, const vglVertex *A, const vglVertex *B, const vglVertex *C) {
-    vglVec2f AC, AB;
-    VGL_VEC2_SUB(AC, C->pos, A->pos);
-    VGL_VEC2_SUB(AB, B->pos, A->pos);
+#define RS_TRI_SHADEMODEL Flat
+#define RS_TRI_TEXTURED Colored
+#include "RasterizeTriangle.inl"
 
-    const float bcW = AC.x*AB.y - AB.x*AC.y;
-    if (bcW >= 1.0f) { // back-face culling
-        const float bcInvW = 1.0f / bcW;
+#define RS_TRI_SHADEMODEL Flat
+#define RS_TRI_TEXTURED Textured
+#include "RasterizeTriangle.inl"
 
-        const vglVec3f colorBCA[] = {
-            VGL_VEC3F(B->color.r, C->color.r, A->color.r),
-            VGL_VEC3F(B->color.g, C->color.g, A->color.g),
-            VGL_VEC3F(B->color.b, C->color.b, A->color.b),
-            VGL_VEC3F(B->color.a, C->color.a, A->color.a),
-        };
+#define RS_TRI_SHADEMODEL Smooth
+#define RS_TRI_TEXTURED Colored
+#include "RasterizeTriangle.inl"
 
-        const vglVec2i triMin = VGL_VEC2I_MIN3(A->pos, B->pos, C->pos);
-        const vglVec2i triMax = VGL_VEC2I_MAX3(A->pos, B->pos, C->pos);
-        const vglVec2i min = VGL_VEC2I_CLAMP(triMin, *vpMin, *vpMax);
-        const vglVec2i max = VGL_VEC2I_CLAMP(triMax, *vpMin, *vpMax);
-
-        const vglVec3f invABCz = { 1.0f / B->pos.z, 1.0f / C->pos.z, 1.0f / A->pos.z };
-
-        const bool isDepthTest = gCurrentState->caps & GL_DEPTH_TEST;
-        const uint32_t depthFunc = gCurrentState->depthFunc;
-
-        vglVec3f bcScreen = { 0, 0, 0 };
-        vglVec3f bcClip = { 0, 0, 0 };
-
-        vglVec2f PA;
-        for (int y = min.y; y <= max.y; ++y) {
-            PA.y = A->pos.y - y;
-
-            const uint32_t idx = y*gBufferSize.x + min.x;
-            uint8_t *colorBuffer = gColorBuffer + idx;
-            float *depthBuffer = gDepthBuffer + idx;
-
-            for (int x = min.x; x <= max.x; ++x, colorBuffer += 4, ++depthBuffer) {
-                PA.x = A->pos.x - x;
-
-                bcScreen.x = (PA.x*AC.y - AC.x*PA.y)*bcInvW;
-                if (bcScreen.x >= 0.0f) {
-
-                    bcScreen.y = (AB.x*PA.y - PA.x*AB.y)*bcInvW;
-                    if (bcScreen.y >= 0.0f) {
-
-                        bcScreen.z = 1.0f - bcScreen.x - bcScreen.y;
-                        if (bcScreen.z >= 0.0f) {
-                            VGL_VEC3_MUL(bcClip, bcScreen, invABCz);
-                            VGL_VEC3_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
-
-                            if (isDepthTest) {
-                                const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
-
-                                bool depthTestResult = true;
-                                COMPARE_FUNC(depthTestResult, depthFunc, depth, *depthBuffer);
-                                if (!depthTestResult) {
-                                    continue;
-                                }
-                                *depthBuffer = depth;
-                            }
-
-                            colorBuffer[0] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[0]);
-                            colorBuffer[1] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[1]);
-                            colorBuffer[2] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[2]);
-                            colorBuffer[3] = (uint8_t)VGL_VEC3_DOT(bcScreen, colorBCA[3]);
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-void drawTriangleBarycentricFlat(const vglVec2i *vpMin, const vglVec2i *vpMax, const vglVertex *A, const vglVertex *B, const vglVertex *C) {
-    vglVec2f AC, AB;
-    VGL_VEC2_SUB(AC, C->pos, A->pos);
-    VGL_VEC2_SUB(AB, B->pos, A->pos);
-
-    const float bcW = AC.x*AB.y - AB.x*AC.y;
-    if (bcW >= 1.0f) { // back-face culling
-        const float bcInvW = 1.0f / bcW;
-
-        const vglVec2i triMin = VGL_VEC2I_MIN3(A->pos, B->pos, C->pos);
-        const vglVec2i triMax = VGL_VEC2I_MAX3(A->pos, B->pos, C->pos);
-        const vglVec2i min = VGL_VEC2I_CLAMP(triMin, *vpMin, *vpMax);
-        const vglVec2i max = VGL_VEC2I_CLAMP(triMax, *vpMin, *vpMax);
-
-        const vglVec3f invABCz = { 1.0f / B->pos.z, 1.0f / C->pos.z, 1.0f / A->pos.z };
-
-        const bool isDepthTest = gCurrentState->caps & GL_DEPTH_TEST;
-        const uint32_t depthFunc = gCurrentState->depthFunc;
-
-        vglVec3f bcScreen = { 0, 0, 0 };
-        vglVec3f bcClip = { 0, 0, 0 };
-
-        vglVec2f PA;
-        for (int y = min.y; y <= max.y; ++y) {
-            PA.y = A->pos.y - y;
-
-            const uint32_t idx = y*gBufferSize.x + min.x;
-            uint32_t *colorBuffer = gColorBuffer + idx;
-            float *depthBuffer = gDepthBuffer + idx;
-
-            for (int x = min.x; x <= max.x; ++x, colorBuffer++, ++depthBuffer) {
-                PA.x = A->pos.x - x;
-
-                bcScreen.x = (PA.x*AC.y - AC.x*PA.y)*bcInvW;
-                if (bcScreen.x >= 0.0f) {
-
-                    bcScreen.y = (AB.x*PA.y - PA.x*AB.y)*bcInvW;
-                    if (bcScreen.y >= 0.0f) {
-
-                        bcScreen.z = 1.0f - bcScreen.x - bcScreen.y;
-                        if (bcScreen.z >= 0.0f) {
-                            VGL_VEC3_MUL(bcClip, bcScreen, invABCz);
-                            VGL_VEC3_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
-
-                            if (isDepthTest) {
-                                const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
-
-                                bool depthTestResult = true;
-                                COMPARE_FUNC(depthTestResult, depthFunc, depth, *depthBuffer);
-                                if (!depthTestResult) {
-                                    continue;
-                                }
-                                *depthBuffer = depth;
-                            }
-
-                            *colorBuffer = A->color.rgba;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+#define RS_TRI_SHADEMODEL Smooth
+#define RS_TRI_TEXTURED Textured
+#include "RasterizeTriangle.inl"
 
 void processTriangles(size_t verticesCount) {
     const vglVertex *verts = vglVPGetVertices();
@@ -235,21 +113,43 @@ void processTriangles(size_t verticesCount) {
     const vglVec2i vpMax = VGL_VEC2I_CLAMP(gCurrentState->viewport.max, gCurrentContext->bufferRect.min, gCurrentContext->bufferRect.max);
 
     if (gCurrentState->shadeModel == GL_SMOOTH) {
-        for (size_t i = 0; i < verticesCount; i += 3) {
-            const vglVertex *A = verts + i + 0;
-            const vglVertex *B = verts + i + 1;
-            const vglVertex *C = verts + i + 2;
+        if (gCurrentState->caps & GL_TEXTURE_2D) {
+            for (size_t i = 0; i < verticesCount; i += 3) {
+                const vglVertex *A = verts + i + 0;
+                const vglVertex *B = verts + i + 1;
+                const vglVertex *C = verts + i + 2;
 
-            drawTriangleBarycentricSmooth(&vpMin, &vpMax, A, B, C);
+                drawTriangleBarycentric_SmoothTextured(&vpMin, &vpMax, A, B, C);
+            }
+        }
+        else {
+            for (size_t i = 0; i < verticesCount; i += 3) {
+                const vglVertex *A = verts + i + 0;
+                const vglVertex *B = verts + i + 1;
+                const vglVertex *C = verts + i + 2;
+
+                drawTriangleBarycentric_SmoothColored(&vpMin, &vpMax, A, B, C);
+            }
         }
     }
     else if (gCurrentState->shadeModel == GL_FLAT) {
-        for (size_t i = 0; i < verticesCount; i += 3) {
-            const vglVertex *A = verts + i + 0;
-            const vglVertex *B = verts + i + 1;
-            const vglVertex *C = verts + i + 2;
+        if (gCurrentState->caps & GL_TEXTURE_2D) {
+            for (size_t i = 0; i < verticesCount; i += 3) {
+                const vglVertex *A = verts + i + 0;
+                const vglVertex *B = verts + i + 1;
+                const vglVertex *C = verts + i + 2;
 
-            drawTriangleBarycentricFlat(&vpMin, &vpMax, A, B, C);
+                drawTriangleBarycentric_FlatTextured(&vpMin, &vpMax, A, B, C);
+            }
+        }
+        else {
+            for (size_t i = 0; i < verticesCount; i += 3) {
+                const vglVertex *A = verts + i + 0;
+                const vglVertex *B = verts + i + 1;
+                const vglVertex *C = verts + i + 2;
+
+                drawTriangleBarycentric_FlatColored(&vpMin, &vpMax, A, B, C);
+            }
         }
     }
 }

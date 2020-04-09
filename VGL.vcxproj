@@ -164,6 +164,7 @@
     <ClInclude Include="Common.h" />
     <ClInclude Include="GL.h" />
     <ClInclude Include="GLInternal.h" />
+    <ClInclude Include="RasterizeTriangle.inl" />
     <ClInclude Include="VertexProcessor.h" />
     <ClInclude Include="VGLInternal.h" />
     <ClInclude Include="MathLib.h" />
