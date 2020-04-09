@@ -1,6 +1,6 @@
-#define __RS_CONCAT2(a, b, c, d) a##b##c##d
-#define __RS_CONCAT(a, b, c, d) __RS_CONCAT2(a, b, c, d)
-#define RS_TRI_FUNC_NAME(type) __RS_CONCAT(drawTriangle, type, RS_TRI_SHADEMODEL, RS_TRI_TEXTURED)
+#define __RS_CONCAT2(a, b, c) a##b##c
+#define __RS_CONCAT(a, b, c) __RS_CONCAT2(a, b, c)
+#define RS_TRI_FUNC_NAME(type) __RS_CONCAT(drawTriangle, type, RS_TRI_NAME)
 
 void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax, const vglVertex *A, const vglVertex *B, const vglVertex *C) {
     vglVec2f AC, AB;
@@ -11,7 +11,7 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
     if (bcW >= 1.0f) { // back-face culling
         const float bcInvW = 1.0f / bcW;
 
-#if RS_TRI_SHADEMODEL == Smooth
+#if RS_TRI_SHADEMODEL_SMOOTH
         const vglVec3f colorBCA[] = {
             VGL_VEC3F(B->color.r, C->color.r, A->color.r),
             VGL_VEC3F(B->color.g, C->color.g, A->color.g),
@@ -20,7 +20,7 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
         };
 #endif
 
-#if RS_TRI_TEXTURED == Textured
+#if RS_TRI_TEXTURED
         const vglColor *texture = gCurrentState->texture2d->pixels;
         const vglVec2i textureSize = { gCurrentState->texture2d->width, gCurrentState->texture2d->height };
         const vglVec2i textureMin = { 0, 0 };
@@ -41,7 +41,7 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
         const vglVec2i min = VGL_VEC2I_CLAMP(triMin, *vpMin, *vpMax);
         const vglVec2i max = VGL_VEC2I_CLAMP(triMax, *vpMin, *vpMax);
 
-        const vglVec3f invBCAz = { 1.0f / B->pos.z, 1.0f / C->pos.z, 1.0f / A->pos.z };
+        const vglVec3f invBCAz = { 1.0f / B->pos.w, 1.0f / C->pos.w, 1.0f / A->pos.w };
 
         const bool isDepthTest = gCurrentState->caps & GL_DEPTH_TEST;
         const uint32_t depthFunc = gCurrentState->depthFunc;
@@ -82,15 +82,15 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
                                 *depthBuffer = depth;
                             }
 
-#if RS_TRI_SHADEMODEL == Smooth
+#if RS_TRI_SHADEMODEL_SMOOTH
                             colorBuffer[0] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[0]);
                             colorBuffer[1] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[1]);
                             colorBuffer[2] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[2]);
                             colorBuffer[3] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[3]);
-#elif RS_TRI_SHADEMODEL == Flat
+#elif RS_TRI_SHADEMODEL_FLAT
                             *((vglColor*)colorBuffer) = A->color;
 #endif
-#if RS_TRI_TEXTURED == Textured
+#if RS_TRI_TEXTURED
                             texCoord.x = VGL_VEC3_DOT(bcClip, texCoordBCA[0]);
                             texCoord.y = VGL_VEC3_DOT(bcClip, texCoordBCA[1]);
                             texCoord.x = VGL_CLAMP(texCoord.x, textureMin.x, textureMax.x);
@@ -99,11 +99,6 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
                             for (int i = 0; i < 4; i++) {
                                 colorBuffer[i] = (uint8_t)(((float)colorBuffer[i])*((float)texel[i])*inv255);
                             }
-                            /*
-                            cr = cr*tr*255;
-                            cr = (cr / 255)*(tr / 255)*255;
-                            cr = (cr*tr)/(255)
-                            */
 #endif
                         }
                     }

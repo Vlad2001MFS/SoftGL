@@ -33,6 +33,7 @@ void vglVPProcess() {
     VGL_MAT4_MUL(mvp, gCurrentState->projMat, gCurrentState->modelViewMat);
 
     vglVec4f pos[3];
+    float z[3];
 
     const vglVec3f ndcMin = { -1, -1, -1 };
     const vglVec3f ndcMax = {  1,  1,  1 };
@@ -43,12 +44,15 @@ void vglVPProcess() {
         vglVertex *tri = gVertices + i;
 
         VGL_MAT4_MUL_VEC4(pos[0], mvp, tri[0].pos);
+        z[0] = pos[0].z;
         VGL_VEC4_DIV_SCALAR(pos[0], pos[0], pos[0].w);
 
         VGL_MAT4_MUL_VEC4(pos[1], mvp, tri[1].pos);
+        z[1] = pos[1].z;
         VGL_VEC4_DIV_SCALAR(pos[1], pos[1], pos[1].w);
 
         VGL_MAT4_MUL_VEC4(pos[2], mvp, tri[2].pos);
+        z[2] = pos[2].z;
         VGL_VEC4_DIV_SCALAR(pos[2], pos[2], pos[2].w);
 
         if (VGL_VEC3_IN_RANGE(pos[0], ndcMin, ndcMax)
@@ -58,6 +62,9 @@ void vglVPProcess() {
             VGL_MAT4_MUL_VEC4(tri[0].pos, vpMat, pos[0]);
             VGL_MAT4_MUL_VEC4(tri[1].pos, vpMat, pos[1]);
             VGL_MAT4_MUL_VEC4(tri[2].pos, vpMat, pos[2]);
+            tri[0].pos.w = z[0];
+            tri[1].pos.w = z[1];
+            tri[2].pos.w = z[2];
             if (v != tri) {
                 memcpy(v, tri, sizeof(vglVertex)*3);
             }
