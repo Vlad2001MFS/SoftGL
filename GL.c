@@ -228,6 +228,3 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
         }
     }
 }
-
-void glTexParameteri(GLenum target, GLenum pname, GLint param) {
-}

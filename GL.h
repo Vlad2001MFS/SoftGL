@@ -62,10 +62,6 @@ typedef void GLvoid;
 //#define GL_POLYGON                        0x0009
 
 #define GL_TEXTURE_2D                     0x0DE1
-#define GL_TEXTURE_MAG_FILTER             0x2800
-#define GL_TEXTURE_MIN_FILTER             0x2801
-#define GL_NEAREST                        0x2600
-#define GL_LINEAR                         0x2601
 
 #define GL_UNSIGNED_BYTE                  0x1401
 
@@ -103,7 +99,6 @@ GLAPI void APIENTRY glGenTextures (GLsizei n, GLuint *textures);
 GLAPI void APIENTRY glDeleteTextures (GLsizei n, const GLuint *textures);
 GLAPI void APIENTRY glBindTexture (GLenum target, GLuint texture);
 GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
-GLAPI void APIENTRY glTexParameteri (GLenum target, GLenum pname, GLint param);
 
 #ifdef __cplusplus
 }
