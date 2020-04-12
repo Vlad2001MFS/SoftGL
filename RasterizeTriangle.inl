@@ -23,8 +23,6 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
 #if RS_TRI_TEXTURED
         const vglColor *texture = gCurrentState->texture2d->pixels;
         const vglVec2i textureSize = { gCurrentState->texture2d->width, gCurrentState->texture2d->height };
-        const vglVec2i textureMin = { 0, 0 };
-        const vglVec2i textureMax = { textureSize.x - 1, textureSize.y - 1 };
 
         const vglVec3f texCoordBCA[] = {
             VGL_VEC3F(B->texCoord.x*textureSize.x, C->texCoord.x*textureSize.x, A->texCoord.x*textureSize.x),
@@ -91,8 +89,8 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
                             *((vglColor*)colorBuffer) = A->color;
 #endif
 #if RS_TRI_TEXTURED
-                            texCoord.x = VGL_CLAMP(VGL_VEC3_DOT(bcClip, texCoordBCA[0]), textureMin.x, textureMax.x);
-                            texCoord.y = VGL_CLAMP(VGL_VEC3_DOT(bcClip, texCoordBCA[1]), textureMin.y, textureMax.y);
+                            texCoord.x = ((int)VGL_VEC3_DOT(bcClip, texCoordBCA[0])) % textureSize.x;
+                            texCoord.y = ((int)VGL_VEC3_DOT(bcClip, texCoordBCA[1])) % textureSize.y;
                             uint8_t *texel = texture + texCoord.x + texCoord.y*textureSize.x;
                             colorBuffer[0] *= texel[0]*inv255;
                             colorBuffer[1] *= texel[1]*inv255;
