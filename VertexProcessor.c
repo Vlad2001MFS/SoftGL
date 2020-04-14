@@ -74,6 +74,38 @@ void __fastcall proccessLight(vglLight *light, vglVec3f *ambient, vglVec3f *diff
     }
 }
 
+void __fastcall processLighting(vglColor *color, const vglVec4f *vPos, const vglVec3f *vNormal, const vglMat4f *normalMat) {
+    vglVec4f modelViewPos;
+    VGL_MAT4_MUL_VEC4(modelViewPos, gCurrentState->modelViewMat, *vPos);
+
+    vglVec3f ambient = { 0, 0, 0 };
+    vglVec3f diffuse = { 0, 0, 0 };
+    vglVec3f specular = { 0, 0, 0 };
+
+    vglVec3f normal;
+    VGL_MAT3_MUL_VEC3(normal, *normalMat, *vNormal);
+    VGL_VEC3_NORMALIZE(normal, normal);
+
+    for (int k = 0; k < VGL_ARRAYSIZE(gCurrentState->light); k++) {
+        vglLight *light = gCurrentState->light + k;
+        if (light->state) {
+            proccessLight(light, &ambient, &diffuse, &specular, &modelViewPos, &normal);
+        }
+    }
+
+    vglVec3f totalLight = { 0.0f, 0.0f, 0.0f };
+    VGL_VEC3_ADD(totalLight, totalLight, ambient);
+    VGL_VEC3_ADD(totalLight, totalLight, diffuse);
+    VGL_VEC3_ADD(totalLight, totalLight, specular);
+
+    vglVec3f vertColor = { color->r, color->g, color->b };
+    VGL_VEC3_DIV_SCALAR(vertColor, vertColor, 255.0f);
+    VGL_VEC3_MUL(vertColor, vertColor, totalLight);
+    color->r = VGL_CLAMP(vertColor.x, 0.0f, 1.0f)*255;
+    color->g = VGL_CLAMP(vertColor.y, 0.0f, 1.0f)*255;
+    color->b = VGL_CLAMP(vertColor.z, 0.0f, 1.0f)*255;
+}
+
 void vglVPProcess() {
     vglVec2i vpPos = gCurrentState->viewport.min;
     vglVec2i vpSize;
@@ -89,7 +121,7 @@ void vglVPProcess() {
     vglMat4f mvp;
     VGL_MAT4_MUL(mvp, gCurrentState->projMat, gCurrentState->modelViewMat);
 
-    vglVec4f pos[3], modelViewPos;
+    vglVec4f pos[3];
     float z[3];
 
     const vglVec3f ndcMin = { -1, -1, -1 };
@@ -124,34 +156,7 @@ void vglVPProcess() {
 
             for (int j = 0; j < 3; j++) {
                 if (gCurrentState->isLighting) {
-                    VGL_MAT4_MUL_VEC4(modelViewPos, gCurrentState->modelViewMat, tri[j].pos);
-
-                    vglVec3f ambient = { 0, 0, 0 };
-                    vglVec3f diffuse = { 0, 0, 0 };
-                    vglVec3f specular = { 0, 0, 0 };
-
-                    vglVec3f normal;
-                    VGL_MAT3_MUL_VEC3(normal, normalMat, tri[j].normal);
-                    VGL_VEC3_NORMALIZE(normal, normal);
-
-                    for (int k = 0; k < VGL_ARRAYSIZE(gCurrentState->light); k++) {
-                        vglLight *light = gCurrentState->light + k;
-                        if (light->state) {
-                            proccessLight(light, &ambient, &diffuse, &specular, &modelViewPos, &normal);
-                        }
-                    }
-
-                    vglVec3f totalLight = { 0.0f, 0.0f, 0.0f };
-                    VGL_VEC3_ADD(totalLight, totalLight, ambient);
-                    VGL_VEC3_ADD(totalLight, totalLight, diffuse);
-                    VGL_VEC3_ADD(totalLight, totalLight, specular);
-
-                    vglVec3f vertColor = { tri[j].color.r, tri[j].color.g, tri[j].color.b };
-                    VGL_VEC3_DIV_SCALAR(vertColor, vertColor, 255.0f);
-                    VGL_VEC3_MUL(vertColor, vertColor, totalLight);
-                    tri[j].color.r = VGL_CLAMP(vertColor.x, 0.0f, 1.0f)*255;
-                    tri[j].color.g = VGL_CLAMP(vertColor.y, 0.0f, 1.0f)*255;
-                    tri[j].color.b = VGL_CLAMP(vertColor.z, 0.0f, 1.0f)*255;
+                    processLighting(&tri[j].color, &tri[j].pos, &tri[j].normal, &normalMat);
                 }
 
                 tri[j].pos = pos[j];
