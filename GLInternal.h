@@ -13,14 +13,25 @@ typedef struct vglTexture {
     vglColor *pixels;
 } vglTexture;
 
+typedef struct vglLight {
+    bool state;
+    vglVec4f ambient, diffuse, specular, position;
+    vglVec3f spotDirection;
+    float spotExponent, spotCutOff, spotCutOffCos;
+    float constantAtt, linearAtt, quadraticAtt;
+} vglLight;
+
 typedef struct vglGLState {
     vglColor clearColor;
     float clearDepth;
 
     vglIntRect viewport;
-    uint32_t caps;
     uint32_t shadeModel;
+    bool isDepthTest;
     uint32_t depthFunc;
+    bool isTexture2D;
+    bool isLighting;
+    vglLight light[8];
 
     uint32_t matrixMode;
     vglMat4f *currentMat;
@@ -29,6 +40,7 @@ typedef struct vglGLState {
 
     vglColor imColor;
     vglVec2f imTexCoord;
+    vglVec3f imNormal;
     uint8_t imQuadVertsCounter;
     uint32_t primType;
 

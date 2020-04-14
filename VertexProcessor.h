@@ -5,6 +5,7 @@ typedef struct vglVertex {
     vglVec4f pos;
     vglColor color;
     vglVec2f texCoord;
+    vglVec3f normal;
 } vglVertex;
 
 vglVertex *vglVPNewVertex();

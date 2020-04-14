@@ -68,6 +68,27 @@ typedef void GLvoid;
 #define GL_RGB                            0x1907
 #define GL_RGBA                           0x1908
 
+#define GL_LIGHTING                       0x0B50
+#define GL_LIGHT0                         0x4000
+#define GL_LIGHT1                         0x4001
+#define GL_LIGHT2                         0x4002
+#define GL_LIGHT3                         0x4003
+#define GL_LIGHT4                         0x4004
+#define GL_LIGHT5                         0x4005
+#define GL_LIGHT6                         0x4006
+#define GL_LIGHT7                         0x4007
+
+#define GL_AMBIENT                        0x1200
+#define GL_DIFFUSE                        0x1201
+#define GL_SPECULAR                       0x1202
+#define GL_POSITION                       0x1203
+#define GL_SPOT_DIRECTION                 0x1204
+#define GL_SPOT_EXPONENT                  0x1205
+#define GL_SPOT_CUTOFF                    0x1206
+#define GL_CONSTANT_ATTENUATION           0x1207
+#define GL_LINEAR_ATTENUATION             0x1208
+#define GL_QUADRATIC_ATTENUATION          0x1209
+
 /*************************************************************/
 
 GLAPI void APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -91,6 +112,7 @@ GLAPI void APIENTRY glBegin (GLenum mode);
 GLAPI void APIENTRY glColor3f (GLfloat red, GLfloat green, GLfloat blue);
 GLAPI void APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 GLAPI void APIENTRY glTexCoord2f (GLfloat s, GLfloat t);
+GLAPI void APIENTRY glNormal3f (GLfloat nx, GLfloat ny, GLfloat nz);
 GLAPI void APIENTRY glVertex3f (GLfloat x, GLfloat y, GLfloat z);
 GLAPI void APIENTRY glVertex4f (GLfloat x, GLfloat y, GLfloat z, GLfloat w);
 GLAPI void APIENTRY glEnd (void);
@@ -99,6 +121,9 @@ GLAPI void APIENTRY glGenTextures (GLsizei n, GLuint *textures);
 GLAPI void APIENTRY glDeleteTextures (GLsizei n, const GLuint *textures);
 GLAPI void APIENTRY glBindTexture (GLenum target, GLuint texture);
 GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+
+GLAPI void APIENTRY glLightf (GLenum light, GLenum pname, GLfloat param);
+GLAPI void APIENTRY glLightfv (GLenum light, GLenum pname, const GLfloat *params);
 
 #ifdef __cplusplus
 }

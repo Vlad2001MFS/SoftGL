@@ -41,7 +41,7 @@ void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax
 
         const vglVec3f invBCAz = { 1.0f / B->pos.w, 1.0f / C->pos.w, 1.0f / A->pos.w };
 
-        const bool isDepthTest = gCurrentState->caps & GL_DEPTH_TEST;
+        const bool isDepthTest = gCurrentState->isDepthTest;
         const uint32_t depthFunc = gCurrentState->depthFunc;
 
         vglVec3f bcScreen = { 0, 0, 0 };

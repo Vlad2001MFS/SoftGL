@@ -9,9 +9,31 @@ void vglGLStateSetDefault(vglGLState *state) {
     state->clearDepth = 1.0f;
 
     VGL_RECT_SET4(state->viewport, 0, 0, 0, 0);
-    state->caps = 0;
     state->shadeModel = GL_SMOOTH;
+    state->isDepthTest = false;
     state->depthFunc = GL_LESS;
+    state->isTexture2D = false;
+    state->isLighting = false;
+    for (int i = 0; i < VGL_ARRAYSIZE(state->light); i++) {
+        state->light[i].state = false;
+        VGL_VEC4_SET(state->light[i].ambient, 0.0f, 0.0f, 0.0f, 1.0f);
+        if (i == 0) {
+            VGL_VEC4_SET(state->light[i].diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
+            VGL_VEC4_SET(state->light[i].specular, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        else {
+            VGL_VEC4_SET(state->light[i].diffuse, 0.0f, 0.0f, 0.0f, 1.0f);
+            VGL_VEC4_SET(state->light[i].specular, 0.0f, 0.0f, 0.0f, 1.0f);
+        }
+        VGL_VEC4_SET(state->light[i].position, 0.0f, 0.0f, 1.0f, 0.0f);
+        VGL_VEC3_SET(state->light[i].spotDirection, 0.0f, 0.0f, -1.0f);
+        state->light[i].spotExponent = 0.0f;
+        state->light[i].spotCutOff = 180.0f;
+        state->light[i].spotCutOffCos = cosf(VGL_RAD(state->light[i].spotCutOff));
+        state->light[i].constantAtt = 1.0f;
+        state->light[i].linearAtt = 0.0f;
+        state->light[i].quadraticAtt = 0.0f;
+    }
 
     state->matrixMode = GL_MODELVIEW;
     state->currentMat = &state->modelViewMat;
@@ -20,6 +42,7 @@ void vglGLStateSetDefault(vglGLState *state) {
 
     VGL_COLOR_SET(state->imColor, 255, 255, 255, 255);
     VGL_VEC2_SET(state->imTexCoord, 0.0f, 0.0f);
+    VGL_VEC3_SET(state->imNormal, 0.0f, 0.0f, 0.0f);
     state->imQuadVertsCounter = 0;
     state->primType = 0;
 
@@ -29,6 +52,34 @@ void vglGLStateSetDefault(vglGLState *state) {
     state->textures[0].target = GL_TEXTURE_2D;
     state->textures[0].isValid = true;
     state->texturesCount = 1;
+}
+
+void stateEnableDisable(GLenum cap, bool state) {
+    switch (cap) {
+        case GL_DEPTH_TEST: {
+            gCurrentState->isDepthTest = state;
+            break;
+        }
+        case GL_TEXTURE_2D: {
+            gCurrentState->isTexture2D = state;
+            break;
+        }
+        case GL_LIGHTING: {
+            gCurrentState->isLighting = state;
+            break;
+        }
+        case GL_LIGHT0:
+        case GL_LIGHT1:
+        case GL_LIGHT2:
+        case GL_LIGHT3:
+        case GL_LIGHT4:
+        case GL_LIGHT5:
+        case GL_LIGHT6:
+        case GL_LIGHT7: {
+            gCurrentState->light[cap - GL_LIGHT0].state = state;
+            break;
+        }
+    }
 }
 
 // ############################################################################################
@@ -57,11 +108,11 @@ GLAPI void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 }
 
 GLAPI void glEnable(GLenum cap) {
-    gCurrentState->caps |= cap;
+    stateEnableDisable(cap, true);
 }
 
 GLAPI void glDisable(GLenum cap) {
-    gCurrentState->caps &= ~cap;
+    stateEnableDisable(cap, false);
 }
 
 GLAPI void glShadeModel(GLenum mode) {
@@ -131,6 +182,10 @@ GLAPI void glTexCoord2f(GLfloat s, GLfloat t) {
     VGL_VEC2_SET(gCurrentState->imTexCoord, s, t);
 }
 
+GLAPI void glNormal3f(GLfloat nx, GLfloat ny, GLfloat nz) {
+    VGL_VEC3_SET(gCurrentState->imNormal, nx, ny, nz);
+}
+
 GLAPI void glVertex3f(GLfloat x, GLfloat y, GLfloat z) {
     glVertex4f(x, y, z, 1.0f);
 }
@@ -140,6 +195,7 @@ GLAPI void glVertex4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
     VGL_VEC4_SET(v->pos, x, y, z, w);
     v->color = gCurrentState->imColor;
     v->texCoord = gCurrentState->imTexCoord;
+    v->normal = gCurrentState->imNormal;
 
     if (gCurrentState->primType == GL_QUADS) {
         gCurrentState->imQuadVertsCounter++;
@@ -225,6 +281,78 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei widt
             for (int i = 0; i < width*height; i++) {
                 *dst++ = *src++;
             }
+        }
+    }
+}
+
+GLAPI void glLightf(GLenum light, GLenum pname, GLfloat param) {
+    switch (pname) {
+        case GL_SPOT_EXPONENT:
+        case GL_SPOT_CUTOFF:
+        case GL_CONSTANT_ATTENUATION:
+        case GL_LINEAR_ATTENUATION:
+        case GL_QUADRATIC_ATTENUATION: {
+            glLightfv(light, pname, &param);
+            break;
+        }
+    }
+}
+
+GLAPI void glLightfv(GLenum light, GLenum pname, const GLfloat *params) {
+    int idx = light - GL_LIGHT0;
+    switch (pname) {
+        case GL_AMBIENT: {
+            VGL_VEC4_SET(gCurrentState->light[idx].ambient, params[0], params[1], params[2], params[3]);
+            break;
+        }
+        case GL_DIFFUSE: {
+            VGL_VEC4_SET(gCurrentState->light[idx].diffuse, params[0], params[1], params[2], params[3]);
+            break;
+        }
+        case GL_SPECULAR: {
+            VGL_VEC4_SET(gCurrentState->light[idx].specular, params[0], params[1], params[2], params[3]);
+            break;
+        }
+        case GL_POSITION: {
+            vglVec4f tmp = { params[0], params[1], params[2], params[3] };
+            VGL_MAT4_MUL_VEC4(gCurrentState->light[idx].position, gCurrentState->modelViewMat, tmp);
+            /*__m128 __v__ = _mm_load_ps(tmp.data);
+            for (int i = 0; i < 4; i++) {
+                __m128 a = _mm_load_ps(gCurrentState->modelViewMat.cols[i].data);
+                __m128 b = _mm_dp_ps(__v__, a, 0xF1);
+                _mm_store_ss(gCurrentState->light[idx].position.data + i, b);
+            }*/
+            //_mm_store_ss(gCurrentState->light[idx].position.data + 0, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 0), 0xF1));
+            //_mm_store_ss(gCurrentState->light[idx].position.data + 1, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 1), 0xF1));
+            //_mm_store_ss(gCurrentState->light[idx].position.data + 2, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 2), 0xF1));
+            //_mm_store_ss(gCurrentState->light[idx].position.data + 3, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 3), 0xF1));
+            break;
+        }
+        case GL_SPOT_DIRECTION: {
+            vglVec3f tmp = { params[0], params[1], params[2] };
+            VGL_MAT3_MUL_VEC3(gCurrentState->light[idx].spotDirection, gCurrentState->modelViewMat, tmp);
+            break;
+        }
+        case GL_SPOT_EXPONENT: {
+            gCurrentState->light[idx].spotExponent = params[0];
+            break;
+        }
+        case GL_SPOT_CUTOFF: {
+            gCurrentState->light[idx].spotCutOff = params[0];
+            gCurrentState->light[idx].spotCutOffCos = cosf(VGL_RAD(params[0]));
+            break;
+        }
+        case GL_CONSTANT_ATTENUATION: {
+            gCurrentState->light[idx].constantAtt = params[0];
+            break;
+        }
+        case GL_LINEAR_ATTENUATION: {
+            gCurrentState->light[idx].linearAtt = params[0];
+            break;
+        }
+        case GL_QUADRATIC_ATTENUATION: {
+            gCurrentState->light[idx].quadraticAtt = params[0];
+            break;
         }
     }
 }

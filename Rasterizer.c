@@ -121,7 +121,7 @@ void processTriangles(size_t verticesCount) {
     const vglVec2i vpMax = VGL_VEC2I_CLAMP(gCurrentState->viewport.max, gCurrentContext->bufferRect.min, gCurrentContext->bufferRect.max);
 
     if (gCurrentState->shadeModel == GL_SMOOTH) {
-        if ((gCurrentState->caps & GL_TEXTURE_2D) == GL_TEXTURE_2D) {
+        if (gCurrentState->isTexture2D) {
             for (size_t i = 0; i < verticesCount; i += 3) {
                 const vglVertex *A = verts + i + 0;
                 const vglVertex *B = verts + i + 1;
@@ -141,7 +141,7 @@ void processTriangles(size_t verticesCount) {
         }
     }
     else if (gCurrentState->shadeModel == GL_FLAT) {
-        if (gCurrentState->caps & GL_TEXTURE_2D) {
+        if (gCurrentState->isTexture2D) {
             for (size_t i = 0; i < verticesCount; i += 3) {
                 const vglVertex *A = verts + i + 0;
                 const vglVertex *B = verts + i + 1;

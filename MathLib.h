@@ -105,7 +105,10 @@ typedef __declspec(align(16)) struct vglAlignedVec2f {
 #define VGL_VEC2_LEN(a) sqrtf(VGL_VEC2_LEN_SQ(a))
 
 #define VGL_VEC2_SET(out, nx, ny) { (out).x = nx; (out).y = ny; }
+#define VGL_VEC2_NEGATIVE(out, v) { (out).x = -(v).x; (out).y = -(v).y; }
 #define VGL_VEC2_NORMALIZE(out, v) { float invLen = 1.0f / VGL_VEC2_LEN(v); (out).x = (v).x*invLen; (out).y = (v).y*invLen; }
+#define VGL_VEC2_REFLECT(out, i, n) { (out) = (n); VGL_VEC2_MUL_SCALAR(out, out, -2*VGL_VEC2_DOT(n, i)); VGL_VEC2_ADD(out, out, i); }
+
 #define VGL_VEC2_ADD(out, a, b) { (out).x = (a).x + (b).x; (out).y = (a).y + (b).y; }
 #define VGL_VEC2_SUB(out, a, b) { (out).x = (a).x - (b).x; (out).y = (a).y - (b).y; }
 #define VGL_VEC2_MUL(out, a, b) { (out).x = (a).x * (b).x; (out).y = (a).y * (b).y; }
@@ -180,7 +183,10 @@ typedef __declspec(align(16)) struct vglAlignedVec3f {
 #define VGL_VEC3_LEN(a) sqrtf(VGL_VEC3_LEN_SQ(a))
 
 #define VGL_VEC3_SET(out, nx, ny, nz) { (out).x = nx; (out).y = ny; (out).z = nz; }
+#define VGL_VEC3_NEGATIVE(out, v) { (out).x = -(v).x; (out).y = -(v).y; (out).z = -(v).z; }
 #define VGL_VEC3_NORMALIZE(out, v) { float invLen = 1.0f / VGL_VEC3_LEN(v); (out).x = (v).x*invLen; (out).y = (v).y*invLen; (out).z = (v).z*invLen; }
+#define VGL_VEC3_REFLECT(out, i, n) { (out) = (n); VGL_VEC3_MUL_SCALAR(out, out, -2*VGL_VEC3_DOT(n, i)); VGL_VEC3_ADD(out, out, i); }
+
 #define VGL_VEC3_ADD(out, a, b) { (out).x = (a).x + (b).x; (out).y = (a).y + (b).y; (out).z = (a).z + (b).z; }
 #define VGL_VEC3_SUB(out, a, b) { (out).x = (a).x - (b).x; (out).y = (a).y - (b).y; (out).z = (a).z - (b).z; }
 #define VGL_VEC3_MUL(out, a, b) { (out).x = (a).x * (b).x; (out).y = (a).y * (b).y; (out).z = (a).z * (b).z; }
@@ -194,7 +200,7 @@ typedef __declspec(align(16)) struct vglAlignedVec3f {
 // ### Vec4
 // ##################################################################################
 
-typedef struct vglVec4i {
+typedef struct __declspec(align(16)) vglVec4i {
     union {
         struct {
             int x, y, z, w;
@@ -203,16 +209,7 @@ typedef struct vglVec4i {
     };
 } vglVec4i;
 
-typedef __declspec(align(16)) struct vglAlignedVec4i {
-    union {
-        struct {
-            int x, y, z, w;
-        };
-        int data[4];
-    };
-} vglAlignedVec4i;
-
-typedef struct vglVec4f {
+typedef struct __declspec(align(16)) vglVec4f {
     union {
         struct {
             float x, y, z, w;
@@ -221,19 +218,8 @@ typedef struct vglVec4f {
     };
 } vglVec4f;
 
-typedef __declspec(align(16)) struct vglAlignedVec4f {
-    union {
-        struct {
-            float x, y, z, w;
-        };
-        float data[4];
-    };
-} vglAlignedVec4f;
-
 #define VGL_VEC4I(x, y, z, w) ((vglVec4i){ x, y, z, w })
 #define VGL_VEC4F(x, y, z, w) ((vglVec4f){ x, y, z, w })
-#define VGL_ALIGNED_VEC4I(x, y, z, w) ((vglAlignedVec4i){ x, y, z, w })
-#define VGL_ALIGNED_VEC4F(x, y, z, w) ((vglAlignedVec4f){ x, y, z, w })
 
 #define VGL_VEC4I_MIN(a, b) ((vglVec4i){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) })
 #define VGL_VEC4F_MIN(a, b) ((vglVec4f){ VGL_MIN((a).x, (b).x), VGL_MIN((a).y, (b).y), VGL_MIN((a).z, (b).z), VGL_MIN((a).w, (b).w) })
@@ -255,7 +241,10 @@ typedef __declspec(align(16)) struct vglAlignedVec4f {
 #define VGL_VEC4_LEN(a) sqrtf(VGL_VEC4_LEN_SQ(a))
 
 #define VGL_VEC4_SET(out, nx, ny, nz, nw) { (out).x = nx; (out).y = ny; (out).z = nz; (out).w = nw; }
+#define VGL_VEC4_NEGATIVE(out, v) { (out).x = -(v).x; (out).y = -(v).y; (out).z = -(v).z; (out).w = -(v).w; }
 #define VGL_VEC4_NORMALIZE(out, v) { float invLen = 1.0f / VGL_VEC4_LEN(v); (out).x = (v).x*invLen; (out).y = (v).y*invLen; (out).z = (v).z*invLen; (out).w = (v).w*invLen; }
+#define VGL_VEC4_REFLECT(out, i, n) { (out) = (n); VGL_VEC4_MUL_SCALAR(out, out, -2*VGL_VEC4_DOT(n, i)); VGL_VEC4_ADD(out, out, i); }
+
 #define VGL_VEC4_ADD(out, a, b) { (out).x = (a).x + (b).x; (out).y = (a).y + (b).y; (out).z = (a).z + (b).z; (out).w = (a).w + (b).w; }
 #define VGL_VEC4_SUB(out, a, b) { (out).x = (a).x - (b).x; (out).y = (a).y - (b).y; (out).z = (a).z - (b).z; (out).w = (a).w - (b).w; }
 #define VGL_VEC4_MUL(out, a, b) { (out).x = (a).x * (b).x; (out).y = (a).y * (b).y; (out).z = (a).z * (b).z; (out).w = (a).w * (b).w; }
@@ -292,7 +281,7 @@ typedef struct vglFloatRect {
 // ### Mat4
 // ##################################################################################
 
-typedef struct vglMat4f {
+typedef struct __declspec(align(16)) vglMat4f {
     union {
         struct {
             float m11, m12, m13, m14;
@@ -305,6 +294,7 @@ typedef struct vglMat4f {
         // 2 6 10 14
         // 3 7 11 15
         vglVec4f cols[4];
+        float data[16];
     };
 } vglMat4f;
 
@@ -417,4 +407,248 @@ typedef struct vglMat4f {
     _mm_store_ss((out).data + 1, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 1), 0xF1)); \
     _mm_store_ss((out).data + 2, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 2), 0xF1)); \
     _mm_store_ss((out).data + 3, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 3), 0xF1)); \
+}
+
+#define VGL_MAT3_MUL_VEC3(out, a, b) { \
+    for (int c = 0; c < 3; c++) { \
+        (out).data[c] = VGL_MAT4_GET(a, 0, c)*(b).data[0]  \
+                      + VGL_MAT4_GET(a, 1, c)*(b).data[1]  \
+                      + VGL_MAT4_GET(a, 2, c)*(b).data[2]; \
+    } \
+}
+
+#define VGL_MAT4_TRANSPOSE(out, a) { \
+    __m128 col0 = _mm_load_ps((a).cols[0].data); \
+    __m128 col1 = _mm_load_ps((a).cols[1].data); \
+    __m128 col2 = _mm_load_ps((a).cols[2].data); \
+    __m128 col3 = _mm_load_ps((a).cols[3].data); \
+    _MM_TRANSPOSE4_PS(col0, col1, col2, col3); \
+    _mm_store_ps((out).cols[0].data, col0); \
+    _mm_store_ps((out).cols[1].data, col1); \
+    _mm_store_ps((out).cols[2].data, col2); \
+    _mm_store_ps((out).cols[3].data, col3); \
+}
+
+#define VGL_MAT4_INVERSE(out, a) {                                            \
+    __m128 in0 = _mm_load_ps((a).cols[0].data);                               \
+    __m128 in1 = _mm_load_ps((a).cols[1].data);                               \
+    __m128 in2 = _mm_load_ps((a).cols[2].data);                               \
+    __m128 in3 = _mm_load_ps((a).cols[3].data);                               \
+    __m128 Fac0;                                                              \
+    {                                                                         \
+	    /*	valType SubFactor00 = m[2][2] * m[3][3] - m[3][2] * m[2][3]; */   \
+	    /*	valType SubFactor00 = m[2][2] * m[3][3] - m[3][2] * m[2][3]; */   \
+	    /*	valType SubFactor06 = m[1][2] * m[3][3] - m[3][2] * m[1][3]; */   \
+	    /*	valType SubFactor13 = m[1][2] * m[2][3] - m[2][2] * m[1][3]; */   \
+                                                                              \
+	    __m128 Swp0a = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(3, 3, 3, 3));     \
+	    __m128 Swp0b = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(2, 2, 2, 2));     \
+                                                                              \
+	    __m128 Swp00 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(2, 2, 2, 2));     \
+	    __m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp03 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(3, 3, 3, 3));     \
+                                                                              \
+	    __m128 Mul00 = _mm_mul_ps(Swp00, Swp01);                              \
+	    __m128 Mul01 = _mm_mul_ps(Swp02, Swp03);                              \
+	    Fac0 = _mm_sub_ps(Mul00, Mul01);                                      \
+    }                                                                         \
+                                                                              \
+    __m128 Fac1;                                                              \
+    {                                                                         \
+	    /*	valType SubFactor01 = m[2][1] * m[3][3] - m[3][1] * m[2][3]; */   \
+	    /*	valType SubFactor01 = m[2][1] * m[3][3] - m[3][1] * m[2][3]; */   \
+	    /*	valType SubFactor07 = m[1][1] * m[3][3] - m[3][1] * m[1][3]; */   \
+	    /*	valType SubFactor14 = m[1][1] * m[2][3] - m[2][1] * m[1][3]; */   \
+                                                                              \
+	    __m128 Swp0a = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(3, 3, 3, 3));     \
+	    __m128 Swp0b = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(1, 1, 1, 1));     \
+                                                                              \
+	    __m128 Swp00 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(1, 1, 1, 1));     \
+	    __m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp03 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(3, 3, 3, 3));     \
+                                                                              \
+	    __m128 Mul00 = _mm_mul_ps(Swp00, Swp01);                              \
+	    __m128 Mul01 = _mm_mul_ps(Swp02, Swp03);                              \
+	    Fac1 = _mm_sub_ps(Mul00, Mul01);                                      \
+    }                                                                         \
+                                                                              \
+                                                                              \
+    __m128 Fac2;                                                              \
+    {                                                                         \
+	    /*	valType SubFactor02 = m[2][1] * m[3][2] - m[3][1] * m[2][2]; */   \
+	    /*	valType SubFactor02 = m[2][1] * m[3][2] - m[3][1] * m[2][2]; */   \
+	    /*	valType SubFactor08 = m[1][1] * m[3][2] - m[3][1] * m[1][2]; */   \
+	    /*	valType SubFactor15 = m[1][1] * m[2][2] - m[2][1] * m[1][2]; */   \
+                                                                              \
+	    __m128 Swp0a = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(2, 2, 2, 2));     \
+	    __m128 Swp0b = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(1, 1, 1, 1));     \
+                                                                              \
+	    __m128 Swp00 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(1, 1, 1, 1));     \
+	    __m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp03 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(2, 2, 2, 2));     \
+                                                                              \
+	    __m128 Mul00 = _mm_mul_ps(Swp00, Swp01);                              \
+	    __m128 Mul01 = _mm_mul_ps(Swp02, Swp03);                              \
+	    Fac2 = _mm_sub_ps(Mul00, Mul01);                                      \
+    }                                                                         \
+                                                                              \
+    __m128 Fac3;                                                              \
+    {                                                                         \
+	    /*	valType SubFactor03 = m[2][0] * m[3][3] - m[3][0] * m[2][3]; */   \
+	    /*	valType SubFactor03 = m[2][0] * m[3][3] - m[3][0] * m[2][3]; */   \
+	    /*	valType SubFactor09 = m[1][0] * m[3][3] - m[3][0] * m[1][3]; */   \
+	    /*	valType SubFactor16 = m[1][0] * m[2][3] - m[2][0] * m[1][3]; */   \
+                                                                              \
+	    __m128 Swp0a = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(3, 3, 3, 3));     \
+	    __m128 Swp0b = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(0, 0, 0, 0));     \
+                                                                              \
+	    __m128 Swp00 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(0, 0, 0, 0));     \
+	    __m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp03 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(3, 3, 3, 3));     \
+                                                                              \
+	    __m128 Mul00 = _mm_mul_ps(Swp00, Swp01);                              \
+	    __m128 Mul01 = _mm_mul_ps(Swp02, Swp03);                              \
+	    Fac3 = _mm_sub_ps(Mul00, Mul01);                                      \
+    }                                                                         \
+                                                                              \
+    __m128 Fac4;                                                              \
+    {                                                                         \
+	    /*	valType SubFactor04 = m[2][0] * m[3][2] - m[3][0] * m[2][2]; */   \
+	    /*	valType SubFactor04 = m[2][0] * m[3][2] - m[3][0] * m[2][2]; */   \
+	    /*	valType SubFactor10 = m[1][0] * m[3][2] - m[3][0] * m[1][2]; */   \
+	    /*	valType SubFactor17 = m[1][0] * m[2][2] - m[2][0] * m[1][2]; */   \
+                                                                              \
+	    __m128 Swp0a = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(2, 2, 2, 2));     \
+	    __m128 Swp0b = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(0, 0, 0, 0));     \
+                                                                              \
+	    __m128 Swp00 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(0, 0, 0, 0));     \
+	    __m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp03 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(2, 2, 2, 2));     \
+                                                                              \
+	    __m128 Mul00 = _mm_mul_ps(Swp00, Swp01);                              \
+	    __m128 Mul01 = _mm_mul_ps(Swp02, Swp03);                              \
+	    Fac4 = _mm_sub_ps(Mul00, Mul01);                                      \
+    }                                                                         \
+                                                                              \
+    __m128 Fac5;                                                              \
+    {                                                                         \
+	    /*	valType SubFactor05 = m[2][0] * m[3][1] - m[3][0] * m[2][1]; */   \
+	    /*	valType SubFactor05 = m[2][0] * m[3][1] - m[3][0] * m[2][1]; */   \
+	    /*	valType SubFactor12 = m[1][0] * m[3][1] - m[3][0] * m[1][1]; */   \
+	    /*	valType SubFactor18 = m[1][0] * m[2][1] - m[2][0] * m[1][1]; */   \
+                                                                              \
+	    __m128 Swp0a = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(1, 1, 1, 1));     \
+	    __m128 Swp0b = _mm_shuffle_ps(in3, in2, _MM_SHUFFLE(0, 0, 0, 0));     \
+                                                                              \
+	    __m128 Swp00 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(0, 0, 0, 0));     \
+	    __m128 Swp01 = _mm_shuffle_ps(Swp0a, Swp0a, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp02 = _mm_shuffle_ps(Swp0b, Swp0b, _MM_SHUFFLE(2, 0, 0, 0)); \
+	    __m128 Swp03 = _mm_shuffle_ps(in2, in1, _MM_SHUFFLE(1, 1, 1, 1));     \
+                                                                              \
+	    __m128 Mul00 = _mm_mul_ps(Swp00, Swp01);                              \
+	    __m128 Mul01 = _mm_mul_ps(Swp02, Swp03);                              \
+	    Fac5 = _mm_sub_ps(Mul00, Mul01);                                      \
+    }                                                                         \
+                                                                              \
+    __m128 SignA = _mm_set_ps( 1.0f,-1.0f, 1.0f,-1.0f);                       \
+    __m128 SignB = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);                       \
+                                                                              \
+    /* m[1][0] */                                                             \
+    /* m[0][0] */                                                             \
+    /* m[0][0] */                                                             \
+    /* m[0][0] */                                                             \
+    __m128 Temp0 = _mm_shuffle_ps(in1, in0, _MM_SHUFFLE(0, 0, 0, 0));         \
+    __m128 Vec0 = _mm_shuffle_ps(Temp0, Temp0, _MM_SHUFFLE(2, 2, 2, 0));      \
+                                                                              \
+    /* m[1][1] */                                                             \
+    /* m[0][1] */                                                             \
+    /* m[0][1] */                                                             \
+    /* m[0][1] */                                                             \
+    __m128 Temp1 = _mm_shuffle_ps(in1, in0, _MM_SHUFFLE(1, 1, 1, 1));         \
+    __m128 Vec1 = _mm_shuffle_ps(Temp1, Temp1, _MM_SHUFFLE(2, 2, 2, 0));      \
+                                                                              \
+    /* m[1][2] */                                                             \
+    /* m[0][2] */                                                             \
+    /* m[0][2] */                                                             \
+    /* m[0][2] */                                                             \
+    __m128 Temp2 = _mm_shuffle_ps(in1, in0, _MM_SHUFFLE(2, 2, 2, 2));         \
+    __m128 Vec2 = _mm_shuffle_ps(Temp2, Temp2, _MM_SHUFFLE(2, 2, 2, 0));      \
+                                                                              \
+    /* m[1][3] */                                                             \
+    /* m[0][3] */                                                             \
+    /* m[0][3] */                                                             \
+    /* m[0][3] */                                                             \
+    __m128 Temp3 = _mm_shuffle_ps(in1, in0, _MM_SHUFFLE(3, 3, 3, 3));         \
+    __m128 Vec3 = _mm_shuffle_ps(Temp3, Temp3, _MM_SHUFFLE(2, 2, 2, 0));      \
+                                                                              \
+    /* col0                                                                   \
+       + (Vec1[0] * Fac0[0] - Vec2[0] * Fac1[0] + Vec3[0] * Fac2[0]),         \
+       - (Vec1[1] * Fac0[1] - Vec2[1] * Fac1[1] + Vec3[1] * Fac2[1]),         \
+       + (Vec1[2] * Fac0[2] - Vec2[2] * Fac1[2] + Vec3[2] * Fac2[2]),         \
+       - (Vec1[3] * Fac0[3] - Vec2[3] * Fac1[3] + Vec3[3] * Fac2[3]), */      \
+    __m128 Mul00 = _mm_mul_ps(Vec1, Fac0);                                    \
+    __m128 Mul01 = _mm_mul_ps(Vec2, Fac1);                                    \
+    __m128 Mul02 = _mm_mul_ps(Vec3, Fac2);                                    \
+    __m128 Sub00 = _mm_sub_ps(Mul00, Mul01);                                  \
+    __m128 Add00 = _mm_add_ps(Sub00, Mul02);                                  \
+    __m128 Inv0 = _mm_mul_ps(SignB, Add00);                                   \
+                                                                              \
+    /* col1                                                                   \
+       - (Vec0[0] * Fac0[0] - Vec2[0] * Fac3[0] + Vec3[0] * Fac4[0]),         \
+       + (Vec0[0] * Fac0[1] - Vec2[1] * Fac3[1] + Vec3[1] * Fac4[1]),         \
+       - (Vec0[0] * Fac0[2] - Vec2[2] * Fac3[2] + Vec3[2] * Fac4[2]),         \
+       + (Vec0[0] * Fac0[3] - Vec2[3] * Fac3[3] + Vec3[3] * Fac4[3]), */      \
+    __m128 Mul03 = _mm_mul_ps(Vec0, Fac0);                                    \
+    __m128 Mul04 = _mm_mul_ps(Vec2, Fac3);                                    \
+    __m128 Mul05 = _mm_mul_ps(Vec3, Fac4);                                    \
+    __m128 Sub01 = _mm_sub_ps(Mul03, Mul04);                                  \
+    __m128 Add01 = _mm_add_ps(Sub01, Mul05);                                  \
+    __m128 Inv1 = _mm_mul_ps(SignA, Add01);                                   \
+                                                                              \
+    /* col2                                                                   \
+       + (Vec0[0] * Fac1[0] - Vec1[0] * Fac3[0] + Vec3[0] * Fac5[0]),         \
+       - (Vec0[0] * Fac1[1] - Vec1[1] * Fac3[1] + Vec3[1] * Fac5[1]),         \
+       + (Vec0[0] * Fac1[2] - Vec1[2] * Fac3[2] + Vec3[2] * Fac5[2]),         \
+       - (Vec0[0] * Fac1[3] - Vec1[3] * Fac3[3] + Vec3[3] * Fac5[3]), */      \
+    __m128 Mul06 = _mm_mul_ps(Vec0, Fac1);                                    \
+    __m128 Mul07 = _mm_mul_ps(Vec1, Fac3);                                    \
+    __m128 Mul08 = _mm_mul_ps(Vec3, Fac5);                                    \
+    __m128 Sub02 = _mm_sub_ps(Mul06, Mul07);                                  \
+    __m128 Add02 = _mm_add_ps(Sub02, Mul08);                                  \
+    __m128 Inv2 = _mm_mul_ps(SignB, Add02);                                   \
+                                                                              \
+    /* col3                                                                   \
+       - (Vec1[0] * Fac2[0] - Vec1[0] * Fac4[0] + Vec2[0] * Fac5[0]),         \
+       + (Vec1[0] * Fac2[1] - Vec1[1] * Fac4[1] + Vec2[1] * Fac5[1]),         \
+       - (Vec1[0] * Fac2[2] - Vec1[2] * Fac4[2] + Vec2[2] * Fac5[2]),         \
+       + (Vec1[0] * Fac2[3] - Vec1[3] * Fac4[3] + Vec2[3] * Fac5[3])); */     \
+    __m128 Mul09 = _mm_mul_ps(Vec0, Fac2);                                    \
+    __m128 Mul10 = _mm_mul_ps(Vec1, Fac4);                                    \
+    __m128 Mul11 = _mm_mul_ps(Vec2, Fac5);                                    \
+    __m128 Sub03 = _mm_sub_ps(Mul09, Mul10);                                  \
+    __m128 Add03 = _mm_add_ps(Sub03, Mul11);                                  \
+    __m128 Inv3 = _mm_mul_ps(SignA, Add03);                                   \
+                                                                              \
+    __m128 Row0 = _mm_shuffle_ps(Inv0, Inv1, _MM_SHUFFLE(0, 0, 0, 0));        \
+    __m128 Row1 = _mm_shuffle_ps(Inv2, Inv3, _MM_SHUFFLE(0, 0, 0, 0));        \
+    __m128 Row2 = _mm_shuffle_ps(Row0, Row1, _MM_SHUFFLE(2, 0, 2, 0));        \
+                                                                              \
+    /*	valType Determinant = m[0][0] * Inverse[0][0]                         \
+    						+ m[0][1] * Inverse[1][0]                         \
+    						+ m[0][2] * Inverse[2][0]                         \
+    						+ m[0][3] * Inverse[3][0]; */                     \
+    __m128 Det0 = _mm_dp_ps(in0, Row2, 0xff);                                 \
+    __m128 Rcp0 = _mm_div_ps(_mm_set1_ps(1.0f), Det0);                        \
+    /*__m128 Rcp0 = _mm_rcp_ps(Det0);*/                                       \
+                                                                              \
+    /*	Inverse /= Determinant; */                                            \
+    _mm_store_ps((out).cols[0].data, _mm_mul_ps(Inv0, Rcp0));                 \
+    _mm_store_ps((out).cols[1].data, _mm_mul_ps(Inv1, Rcp0));                 \
+    _mm_store_ps((out).cols[2].data, _mm_mul_ps(Inv2, Rcp0));                 \
+    _mm_store_ps((out).cols[3].data, _mm_mul_ps(Inv3, Rcp0));                 \
 }
