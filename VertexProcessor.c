@@ -111,6 +111,18 @@ void vglVPProcess() {
 
         if (triIsVisible) {
             for (int j = 0; j < 3; j++) {
+                VGL_MAT4_MUL_VEC4(pos[j], vpMat, pos[j]);
+                pos[j].w = z[j];
+            }
+
+            vglVec2f AC, AB;
+            VGL_VEC2_SUB(AC, pos[2], pos[0]);
+            VGL_VEC2_SUB(AB, pos[1], pos[0]);
+            if ((AC.x*AB.y - AB.x*AC.y) < 1.0f) {
+                continue;
+            }
+
+            for (int j = 0; j < 3; j++) {
                 if (gCurrentState->isLighting) {
                     VGL_MAT4_MUL_VEC4(modelViewPos, gCurrentState->modelViewMat, tri[j].pos);
 
@@ -142,8 +154,7 @@ void vglVPProcess() {
                     tri[j].color.b = VGL_CLAMP(vertColor.z, 0.0f, 1.0f)*255;
                 }
 
-                VGL_MAT4_MUL_VEC4(tri[j].pos, vpMat, pos[j]);
-                tri[j].pos.w = z[j];
+                tri[j].pos = pos[j];
             }
 
             if (v != tri) {
