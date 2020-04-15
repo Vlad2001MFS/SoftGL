@@ -135,7 +135,7 @@ void vglVPProcess() {
         bool triIsVisible = false;
         for (int j = 0; j < 3; j++) {
             VGL_MAT4_MUL_VEC4(pos[j], mvp, tri[j].pos);
-            z[j] = pos[j].z;
+            z[j] = pos[j].w;
             VGL_VEC4_DIV_SCALAR(pos[j], pos[j], pos[j].w);
 
             triIsVisible = triIsVisible || VGL_VEC3_IN_RANGE(pos[j], ndcMin, ndcMax);
@@ -144,13 +144,10 @@ void vglVPProcess() {
         if (triIsVisible) {
             for (int j = 0; j < 3; j++) {
                 VGL_MAT4_MUL_VEC4(pos[j], vpMat, pos[j]);
-                pos[j].w = z[j];
+                pos[j].z = z[j];
             }
 
-            vglVec2f AC, AB;
-            VGL_VEC2_SUB(AC, pos[2], pos[0]);
-            VGL_VEC2_SUB(AB, pos[1], pos[0]);
-            if ((AC.x*AB.y - AB.x*AC.y) < 1.0f) {
+            if (VGL_EDGE_FUNCTION(pos[0], pos[1], pos[2]) <= 0.0f) {
                 continue;
             }
 

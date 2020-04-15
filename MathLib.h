@@ -21,6 +21,9 @@
 #define VGL_FLT_NOT_EQUAL(a, b) (fabsf((a) - (b)) > FLT_EPSILON)
 #define VGL_IN_RANGE(value, min, max) ((value) >= (min) && (value) <= (max))
 
+// Returns the area of triangle multiplied by 2
+#define VGL_EDGE_FUNCTION(p, v0, v1) (((p).x - (v0).x)*((v1).y - (v0).y) - ((p).y - (v0).y)*((v1).x - (v0).x))
+
 // ##################################################################################
 // ### Color
 // ##################################################################################
@@ -375,9 +378,9 @@ typedef struct __declspec(align(16)) vglMat4f {
 \
     (out).m11 = 1.0f / ((aspect) * tanHalfFovy); \
     (out).m22 = 1.0f / (tanHalfFovy); \
-    (out).m33 = - ((zFar) + (zNear)) / ((zFar) - (zNear)); \
-    (out).m43 = - 1.0f; \
-    (out).m34 = - (2.0f * (zFar) * (zNear)) / ((zFar) - (zNear)); \
+    (out).m33 = -((zFar) + (zNear)) / ((zFar) - (zNear)); \
+    (out).m43 = -1.0f; \
+    (out).m34 = -(2.0f * (zFar) * (zNear)) / ((zFar) - (zNear)); \
 }
 
 #define VGL_MAT4_SET_VIEWPORT(out, nx, ny, nw, nh) { VGL_MAT4_SET(out, \

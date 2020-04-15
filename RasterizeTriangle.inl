@@ -2,102 +2,107 @@
 #define __RS_CONCAT(a, b, c) __RS_CONCAT2(a, b, c)
 #define RS_TRI_FUNC_NAME(type) __RS_CONCAT(drawTriangle, type, RS_TRI_NAME)
 
-void RS_TRI_FUNC_NAME(Barycentric_)(const vglVec2i *vpMin, const vglVec2i *vpMax, const vglVertex *A, const vglVertex *B, const vglVertex *C) {
-    vglVec2f AC, AB;
-    VGL_VEC2_SUB(AC, C->pos, A->pos);
-    VGL_VEC2_SUB(AB, B->pos, A->pos);
-
-    const float bcInvW = 1.0f / (AC.x*AB.y - AB.x*AC.y);
-
-#if RS_TRI_SHADEMODEL_SMOOTH
-    const vglVec3f colorBCA[] = {
-        VGL_VEC3F(B->color.r, C->color.r, A->color.r),
-        VGL_VEC3F(B->color.g, C->color.g, A->color.g),
-        VGL_VEC3F(B->color.b, C->color.b, A->color.b),
-        VGL_VEC3F(B->color.a, C->color.a, A->color.a),
-    };
-#endif
-
-#if RS_TRI_TEXTURED
-    const vglColor *texture = gCurrentState->texture2d->pixels;
-    const vglVec2i textureSize = { gCurrentState->texture2d->width, gCurrentState->texture2d->height };
-
-    const vglVec3f texCoordBCA[] = {
-        VGL_VEC3F(B->texCoord.x*textureSize.x, C->texCoord.x*textureSize.x, A->texCoord.x*textureSize.x),
-        VGL_VEC3F((1.0f - B->texCoord.y)*textureSize.y, (1.0f - C->texCoord.y)*textureSize.y, (1.0f - A->texCoord.y)*textureSize.y)
-    };
-
-    vglVec2i texCoord = { 0, 0 };
-
-    float inv255 = 1.0f / 255.0f;
-#endif
-
+void RS_TRI_FUNC_NAME(HalfPlane_)(const vglVec2i *vpMin, const vglVec2i *vpMax, const vglVertex *A, const vglVertex *B, const vglVertex *C) {
     const vglVec2i triMin = VGL_VEC2I_MIN3(A->pos, B->pos, C->pos);
     const vglVec2i triMax = VGL_VEC2I_MAX3(A->pos, B->pos, C->pos);
     const vglVec2i min = VGL_VEC2I_CLAMP(triMin, *vpMin, *vpMax);
     const vglVec2i max = VGL_VEC2I_CLAMP(triMax, *vpMin, *vpMax);
 
-    const vglVec3f invBCAz = { 1.0f / B->pos.w, 1.0f / C->pos.w, 1.0f / A->pos.w };
+    const vglVec3f invABCCamZ = { 1.0f / A->pos.z, 1.0f / B->pos.z, 1.0f / C->pos.z };
 
     const bool isDepthTest = gCurrentState->isDepthTest;
     const uint32_t depthFunc = gCurrentState->depthFunc;
+    const float inv255 = 1.0f / 255.0f;
 
-    vglVec3f bcScreen = { 0, 0, 0 };
-    vglVec3f bcClip = { 0, 0, 0 };
+#if RS_TRI_SHADEMODEL_SMOOTH
+    vglVec3f colorABC[] = {
+        VGL_VEC3F(A->color.r*inv255, B->color.r*inv255, C->color.r*inv255),
+        VGL_VEC3F(A->color.g*inv255, B->color.g*inv255, C->color.g*inv255),
+        VGL_VEC3F(A->color.b*inv255, B->color.b*inv255, C->color.b*inv255),
+        VGL_VEC3F(A->color.a*inv255, B->color.a*inv255, C->color.a*inv255),
+    };
+    for (int i = 0; i < 4; i++) {
+        VGL_VEC3_MUL(colorABC[i], colorABC[i], invABCCamZ);
+    }
+#endif
 
-    vglVec2f PA;
-    for (int y = min.y; y <= max.y; ++y) {
-        PA.y = A->pos.y - y;
+#if RS_TRI_TEXTURED
+    const vglColor *texture = gCurrentState->texture2d->pixels;
+    const int textureWidth = gCurrentState->texture2d->width;
+    const vglVec2i textureMax = { gCurrentState->texture2d->width - 1, gCurrentState->texture2d->height - 1 };
+    vglVec3f texCoordABC[] = {
+        VGL_VEC3F(A->texCoord.x, B->texCoord.x, C->texCoord.x),
+        VGL_VEC3F(A->texCoord.y, B->texCoord.y, C->texCoord.y)
+    };
+    for (int i = 0; i < 2; i++) {
+        VGL_VEC3_MUL(texCoordABC[i], texCoordABC[i], invABCCamZ);
+        VGL_VEC3_MUL_SCALAR(texCoordABC[i], texCoordABC[i], textureMax.data[i]);
+    }
+#endif
+
+    const float invArea = 1.0f / VGL_EDGE_FUNCTION(A->pos, B->pos, C->pos);
+
+    vglVec2f P;
+    vglVec3f weights;
+    vglVec4f color = { 0, 0, 0, 0 };
+    for (int y = min.y; y <= max.y; y++) {
+        P.y = y + 0.5f;
 
         const uint32_t idx = y*gBufferSize.x + min.x;
         uint8_t *colorBuffer = gColorBuffer + idx;
         float *depthBuffer = gDepthBuffer + idx;
 
-        for (int x = min.x; x <= max.x; ++x, colorBuffer += 4, ++depthBuffer) {
-            PA.x = A->pos.x - x;
+        for (int x = min.x; x <= max.x; x++, colorBuffer += 4, ++depthBuffer) {
+            P.x = x + 0.5f;
 
-            bcScreen.x = (PA.x*AC.y - AC.x*PA.y)*bcInvW;
-            if (bcScreen.x >= 0.0f) {
+            weights.x = VGL_EDGE_FUNCTION(P, B->pos, C->pos);
+            weights.y = VGL_EDGE_FUNCTION(P, C->pos, A->pos);
+            weights.z = VGL_EDGE_FUNCTION(P, A->pos, B->pos);
 
-                bcScreen.y = (AB.x*PA.y - PA.x*AB.y)*bcInvW;
-                if (bcScreen.y >= 0.0f) {
+            if (weights.x < 0 || weights.y < 0 || weights.z < 0) {
+                continue;
+            }
 
-                    bcScreen.z = 1.0f - bcScreen.x - bcScreen.y;
-                    if (bcScreen.z >= 0.0f) {
-                        VGL_VEC3_MUL(bcClip, bcScreen, invBCAz);
-                        VGL_VEC3_DIV_SCALAR(bcClip, bcClip, bcClip.x + bcClip.y + bcClip.z); // perspective-correction
+            VGL_VEC2_MUL_SCALAR(weights, weights, invArea);
+            weights.z = 1.0f - weights.x - weights.y;
 
-                        if (isDepthTest) {
-                            const float depth = bcClip.x*B->pos.z + bcClip.y*C->pos.z + bcClip.z*A->pos.z;
+            const float depth = VGL_VEC3_DOT(weights, invABCCamZ);
+            if (isDepthTest) {
+                bool depthTestResult = true;
+                const float oneMinusDepth = 1.0f - depth;
+                COMPARE_FUNC(depthTestResult, depthFunc, oneMinusDepth, *depthBuffer);
+                if (!depthTestResult) {
+                    continue;
+                }
+                *depthBuffer = oneMinusDepth;
+            }
 
-                            bool depthTestResult = true;
-                            COMPARE_FUNC(depthTestResult, depthFunc, depth, *depthBuffer);
-                            if (!depthTestResult) {
-                                continue;
-                            }
-                            *depthBuffer = depth;
-                        }
-
+            const float invDepth = 1.0f / depth;
 #if RS_TRI_SHADEMODEL_SMOOTH
-                        colorBuffer[0] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[0]);
-                        colorBuffer[1] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[1]);
-                        colorBuffer[2] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[2]);
-                        colorBuffer[3] = (uint8_t)VGL_VEC3_DOT(bcClip, colorBCA[3]);
+            color.x = VGL_VEC3_DOT(weights, colorABC[0])*invDepth;
+            color.y = VGL_VEC3_DOT(weights, colorABC[1])*invDepth;
+            color.z = VGL_VEC3_DOT(weights, colorABC[2])*invDepth;
+            color.w = VGL_VEC3_DOT(weights, colorABC[3])*invDepth;
 #elif RS_TRI_SHADEMODEL_FLAT
-                        *((vglColor*)colorBuffer) = A->color;
+            color.x = A->color.r;
+            color.y = A->color.g;
+            color.z = A->color.b;
+            color.w = A->color.a;
 #endif
 #if RS_TRI_TEXTURED
-                        texCoord.x = ((int)VGL_VEC3_DOT(bcClip, texCoordBCA[0])) % textureSize.x;
-                        texCoord.y = ((int)VGL_VEC3_DOT(bcClip, texCoordBCA[1])) % textureSize.y;
-                        uint8_t *texel = texture + texCoord.x + texCoord.y*textureSize.x;
-                        colorBuffer[0] *= texel[0]*inv255;
-                        colorBuffer[1] *= texel[1]*inv255;
-                        colorBuffer[2] *= texel[2]*inv255;
-                        colorBuffer[3] *= texel[3]*inv255;
+            const int u = ((int)(VGL_VEC3_DOT(weights, texCoordABC[0])*invDepth)) % textureMax.x;
+            const int v = ((int)(VGL_VEC3_DOT(weights, texCoordABC[1])*invDepth)) % textureMax.y;
+            const uint8_t *texel = texture + u + v*textureWidth;
+
+            color.x *= texel[0]*inv255;
+            color.y *= texel[1]*inv255;
+            color.z *= texel[2]*inv255;
+            color.w *= texel[3]*inv255;
 #endif
-                    }
-                }
-            }
+            colorBuffer[0] = color.x*255;
+            colorBuffer[1] = color.y*255;
+            colorBuffer[2] = color.z*255;
+            colorBuffer[3] = color.w*255;
         }
     }
 }

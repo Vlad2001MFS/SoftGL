@@ -127,7 +127,7 @@ void processTriangles(size_t verticesCount) {
                 const vglVertex *B = verts + i + 1;
                 const vglVertex *C = verts + i + 2;
 
-                drawTriangleBarycentric_SmoothTextured(&vpMin, &vpMax, A, B, C);
+                drawTriangleHalfPlane_SmoothTextured(&vpMin, &vpMax, A, B, C);
             }
         }
         else {
@@ -136,7 +136,7 @@ void processTriangles(size_t verticesCount) {
                 const vglVertex *B = verts + i + 1;
                 const vglVertex *C = verts + i + 2;
 
-                drawTriangleBarycentric_SmoothColored(&vpMin, &vpMax, A, B, C);
+                drawTriangleHalfPlane_SmoothColored(&vpMin, &vpMax, A, B, C);
             }
         }
     }
@@ -147,7 +147,7 @@ void processTriangles(size_t verticesCount) {
                 const vglVertex *B = verts + i + 1;
                 const vglVertex *C = verts + i + 2;
 
-                drawTriangleBarycentric_FlatTextured(&vpMin, &vpMax, A, B, C);
+                drawTriangleHalfPlane_FlatTextured(&vpMin, &vpMax, A, B, C);
             }
         }
         else {
@@ -156,7 +156,7 @@ void processTriangles(size_t verticesCount) {
                 const vglVertex *B = verts + i + 1;
                 const vglVertex *C = verts + i + 2;
 
-                drawTriangleBarycentric_FlatColored(&vpMin, &vpMax, A, B, C);
+                drawTriangleHalfPlane_FlatColored(&vpMin, &vpMax, A, B, C);
             }
         }
     }
