@@ -32,6 +32,7 @@ typedef struct vglGLState {
     bool isTexture2D;
     bool isLighting;
     vglLight light[8];
+    vglVec4f lightModelAmbient;
 
     uint32_t matrixMode;
     vglMat4f *currentMat;

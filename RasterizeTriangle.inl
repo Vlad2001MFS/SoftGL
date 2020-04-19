@@ -84,25 +84,27 @@ void RS_TRI_FUNC_NAME(HalfPlane_)(const vglVec2i *vpMin, const vglVec2i *vpMax, 
             color.z = VGL_VEC3_DOT(weights, colorABC[2])*invDepth;
             color.w = VGL_VEC3_DOT(weights, colorABC[3])*invDepth;
 #elif RS_TRI_SHADEMODEL_FLAT
-            color.x = A->color.r;
-            color.y = A->color.g;
-            color.z = A->color.b;
-            color.w = A->color.a;
+            color.x = A->color.r*inv255;
+            color.y = A->color.g*inv255;
+            color.z = A->color.b*inv255;
+            color.w = A->color.a*inv255;
 #endif
 #if RS_TRI_TEXTURED
             const int u = ((int)(VGL_VEC3_DOT(weights, texCoordABC[0])*invDepth)) % textureMax.x;
             const int v = ((int)(VGL_VEC3_DOT(weights, texCoordABC[1])*invDepth)) % textureMax.y;
             const uint8_t *texel = texture + u + v*textureWidth;
 
-            color.x *= texel[0]*inv255;
-            color.y *= texel[1]*inv255;
-            color.z *= texel[2]*inv255;
-            color.w *= texel[3]*inv255;
+            color.x *= texel[0];
+            color.y *= texel[1];
+            color.z *= texel[2];
+            color.w *= texel[3];
+#else
+            VGL_VEC4_MUL_SCALAR(color, color, 255);
 #endif
-            colorBuffer[0] = color.x*255;
-            colorBuffer[1] = color.y*255;
-            colorBuffer[2] = color.z*255;
-            colorBuffer[3] = color.w*255;
+            colorBuffer[0] = color.x;
+            colorBuffer[1] = color.y;
+            colorBuffer[2] = color.z;
+            colorBuffer[3] = color.w;
         }
     }
 }

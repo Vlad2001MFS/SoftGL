@@ -93,17 +93,16 @@ void __fastcall processLighting(vglColor *color, const vglVec4f *vPos, const vgl
         }
     }
 
-    vglVec3f totalLight = { 0.0f, 0.0f, 0.0f };
+    vglVec3f totalLight = { gCurrentState->lightModelAmbient.x, gCurrentState->lightModelAmbient.y, gCurrentState->lightModelAmbient.z };
     VGL_VEC3_ADD(totalLight, totalLight, ambient);
     VGL_VEC3_ADD(totalLight, totalLight, diffuse);
     VGL_VEC3_ADD(totalLight, totalLight, specular);
 
     vglVec3f vertColor = { color->r, color->g, color->b };
-    VGL_VEC3_DIV_SCALAR(vertColor, vertColor, 255.0f);
     VGL_VEC3_MUL(vertColor, vertColor, totalLight);
-    color->r = VGL_CLAMP(vertColor.x, 0.0f, 1.0f)*255;
-    color->g = VGL_CLAMP(vertColor.y, 0.0f, 1.0f)*255;
-    color->b = VGL_CLAMP(vertColor.z, 0.0f, 1.0f)*255;
+    color->r = VGL_CLAMP(vertColor.x, 0, 255);
+    color->g = VGL_CLAMP(vertColor.y, 0, 255);
+    color->b = VGL_CLAMP(vertColor.z, 0, 255);
 }
 
 void vglVPProcess() {

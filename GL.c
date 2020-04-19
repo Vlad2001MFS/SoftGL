@@ -15,13 +15,14 @@ void vglGLStateSetDefault(vglGLState *state) {
     state->isTexture2D = false;
     state->isLighting = false;
     for (int i = 0; i < VGL_ARRAYSIZE(state->light); i++) {
-        state->light[i].state = false;
         VGL_VEC4_SET(state->light[i].ambient, 0.0f, 0.0f, 0.0f, 1.0f);
         if (i == 0) {
+            state->light[i].state = true;
             VGL_VEC4_SET(state->light[i].diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
             VGL_VEC4_SET(state->light[i].specular, 1.0f, 1.0f, 1.0f, 1.0f);
         }
         else {
+            state->light[i].state = false;
             VGL_VEC4_SET(state->light[i].diffuse, 0.0f, 0.0f, 0.0f, 1.0f);
             VGL_VEC4_SET(state->light[i].specular, 0.0f, 0.0f, 0.0f, 1.0f);
         }
@@ -34,6 +35,7 @@ void vglGLStateSetDefault(vglGLState *state) {
         state->light[i].linearAtt = 0.0f;
         state->light[i].quadraticAtt = 0.0f;
     }
+    VGL_VEC4_SET(state->lightModelAmbient, 0.2f, 0.2f, 0.2f, 1.0f);
 
     state->matrixMode = GL_MODELVIEW;
     state->currentMat = &state->modelViewMat;
@@ -316,16 +318,6 @@ GLAPI void glLightfv(GLenum light, GLenum pname, const GLfloat *params) {
         case GL_POSITION: {
             vglVec4f tmp = { params[0], params[1], params[2], params[3] };
             VGL_MAT4_MUL_VEC4(gCurrentState->light[idx].position, gCurrentState->modelViewMat, tmp);
-            /*__m128 __v__ = _mm_load_ps(tmp.data);
-            for (int i = 0; i < 4; i++) {
-                __m128 a = _mm_load_ps(gCurrentState->modelViewMat.cols[i].data);
-                __m128 b = _mm_dp_ps(__v__, a, 0xF1);
-                _mm_store_ss(gCurrentState->light[idx].position.data + i, b);
-            }*/
-            //_mm_store_ss(gCurrentState->light[idx].position.data + 0, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 0), 0xF1));
-            //_mm_store_ss(gCurrentState->light[idx].position.data + 1, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 1), 0xF1));
-            //_mm_store_ss(gCurrentState->light[idx].position.data + 2, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 2), 0xF1));
-            //_mm_store_ss(gCurrentState->light[idx].position.data + 3, _mm_dp_ps(__v__, _mm_load_ps(gCurrentState->modelViewMat.cols + 3), 0xF1));
             break;
         }
         case GL_SPOT_DIRECTION: {
@@ -352,6 +344,33 @@ GLAPI void glLightfv(GLenum light, GLenum pname, const GLfloat *params) {
         }
         case GL_QUADRATIC_ATTENUATION: {
             gCurrentState->light[idx].quadraticAtt = params[0];
+            break;
+        }
+    }
+}
+
+/*GLAPI void glLightModelf(GLenum pname, GLfloat param) {
+    switch (pname) {
+        case GL_LIGHT_MODEL_LOCAL_VIEWER:
+        case GL_LIGHT_MODEL_TWO_SIDE: {
+            glLightModelfv(pname, &param);
+            break;
+        }
+    }
+}*/
+
+GLAPI void glLightModelfv(GLenum pname, const GLfloat *params) {
+    switch (pname) {
+        /*case GL_LIGHT_MODEL_LOCAL_VIEWER: {
+            
+            break;
+        }
+        case GL_LIGHT_MODEL_TWO_SIDE: {
+            
+            break;
+        }*/
+        case GL_LIGHT_MODEL_AMBIENT: {
+            VGL_VEC4_SET(gCurrentState->lightModelAmbient, params[0], params[1], params[2], params[3]);
             break;
         }
     }

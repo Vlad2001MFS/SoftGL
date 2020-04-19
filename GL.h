@@ -89,6 +89,10 @@ typedef void GLvoid;
 #define GL_LINEAR_ATTENUATION             0x1208
 #define GL_QUADRATIC_ATTENUATION          0x1209
 
+//#define GL_LIGHT_MODEL_LOCAL_VIEWER       0x0B51
+//#define GL_LIGHT_MODEL_TWO_SIDE           0x0B52
+#define GL_LIGHT_MODEL_AMBIENT            0x0B53
+
 /*************************************************************/
 
 GLAPI void APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
@@ -124,6 +128,8 @@ GLAPI void APIENTRY glTexImage2D (GLenum target, GLint level, GLint internalform
 
 GLAPI void APIENTRY glLightf (GLenum light, GLenum pname, GLfloat param);
 GLAPI void APIENTRY glLightfv (GLenum light, GLenum pname, const GLfloat *params);
+//GLAPI void APIENTRY glLightModelf (GLenum pname, GLfloat param);
+GLAPI void APIENTRY glLightModelfv (GLenum pname, const GLfloat *params);
 
 #ifdef __cplusplus
 }
