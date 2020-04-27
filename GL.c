@@ -4,7 +4,7 @@
 
 vglGLState *gCurrentState = NULL;
 
-void vglGLStateSetDefault(vglGLState *state) {
+void vglGLStateCreate(vglGLState *state) {
     VGL_COLOR_SET(state->clearColor, 0, 0, 0, 255);
     state->clearDepth = 1.0f;
 
@@ -15,25 +15,27 @@ void vglGLStateSetDefault(vglGLState *state) {
     state->isTexture2D = false;
     state->isLighting = false;
     for (int i = 0; i < VGL_ARRAYSIZE(state->light); i++) {
-        VGL_VEC4_SET(state->light[i].ambient, 0.0f, 0.0f, 0.0f, 1.0f);
+        vglLight *light = state->light + i;
+
+        VGL_VEC4_SET(light->ambient, 0.0f, 0.0f, 0.0f, 1.0f);
         if (i == 0) {
-            state->light[i].state = true;
-            VGL_VEC4_SET(state->light[i].diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
-            VGL_VEC4_SET(state->light[i].specular, 1.0f, 1.0f, 1.0f, 1.0f);
+            light->state = true;
+            VGL_VEC4_SET(light->diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
+            VGL_VEC4_SET(light->specular, 1.0f, 1.0f, 1.0f, 1.0f);
         }
         else {
-            state->light[i].state = false;
-            VGL_VEC4_SET(state->light[i].diffuse, 0.0f, 0.0f, 0.0f, 1.0f);
-            VGL_VEC4_SET(state->light[i].specular, 0.0f, 0.0f, 0.0f, 1.0f);
+            light->state = false;
+            VGL_VEC4_SET(light->diffuse, 0.0f, 0.0f, 0.0f, 1.0f);
+            VGL_VEC4_SET(light->specular, 0.0f, 0.0f, 0.0f, 1.0f);
         }
-        VGL_VEC4_SET(state->light[i].position, 0.0f, 0.0f, 1.0f, 0.0f);
-        VGL_VEC3_SET(state->light[i].spotDirection, 0.0f, 0.0f, -1.0f);
-        state->light[i].spotExponent = 0.0f;
-        state->light[i].spotCutOff = 180.0f;
-        state->light[i].spotCutOffCos = cosf(VGL_RAD(state->light[i].spotCutOff));
-        state->light[i].constantAtt = 1.0f;
-        state->light[i].linearAtt = 0.0f;
-        state->light[i].quadraticAtt = 0.0f;
+        VGL_VEC4_SET(light->position, 0.0f, 0.0f, 1.0f, 0.0f);
+        VGL_VEC3_SET(light->spotDirection, 0.0f, 0.0f, -1.0f);
+        light->spotExponent = 0.0f;
+        light->spotCutOff = 180.0f;
+        light->spotCutOffCos = cosf(VGL_RAD(light->spotCutOff));
+        light->constantAtt = 1.0f;
+        light->linearAtt = 0.0f;
+        light->quadraticAtt = 0.0f;
     }
     VGL_VEC4_SET(state->lightModelAmbient, 0.2f, 0.2f, 0.2f, 1.0f);
 
@@ -48,12 +50,16 @@ void vglGLStateSetDefault(vglGLState *state) {
     state->imQuadVertsCounter = 0;
     state->primType = 0;
 
-    state->texture2d = &state->textures[0];
+    VGL_VECTOR_CREATE(state->textures);
+    VGL_VECTOR_APPEND_EMPTY(state->textures);
+    state->textures.data[0].target = GL_TEXTURE_2D;
+    state->textures.data[0].isValid = true;
 
-    memset(state->textures, 0, sizeof(state->textures));
-    state->textures[0].target = GL_TEXTURE_2D;
-    state->textures[0].isValid = true;
-    state->texturesCount = 1;
+    state->texture2d = &state->textures.data[0];
+}
+
+void vglGLStateDestroy(vglGLState *state) {
+    VGL_VECTOR_DESTROY(state->textures);
 }
 
 void stateEnableDisable(GLenum cap, bool state) {
@@ -222,13 +228,14 @@ GLAPI void glEnd(void) {
 // ############################################################################################
 
 void glGenTextures(GLsizei n, GLuint *textures) {
-    int i = 0;
-    for (uint32_t j = 1; j < VGL_MAX_TEXTURES; j++) {
-        if (!gCurrentState->textures[j].isValid) {
-            gCurrentState->textures[j].isValid = true;
-            textures[i++] = j;
+    for (int i = 0, j = 0; i < n; i++) {
+        vglTexture *tex = textures + i;
+
+        if (!tex->isValid) {
+            tex->isValid = true;
+            textures[j++] = i;
         }
-        if (i == n) {
+        if (j == n) {
             break;
         }
     }
@@ -237,10 +244,11 @@ void glGenTextures(GLsizei n, GLuint *textures) {
 void glDeleteTextures(GLsizei n, const GLuint *textures) {
     for (int i = 0; i < n; i++) {
         uint32_t id = textures[i];
+
         if (id > 0) {
-            vglTexture *tex = gCurrentState->textures + id;
+            vglTexture *tex = gCurrentState->textures.data + id;
             if (tex->target == GL_TEXTURE_2D && gCurrentState->texture2d == tex) {
-                gCurrentState->texture2d = &gCurrentState->textures[0];
+                gCurrentState->texture2d = &gCurrentState->textures.data[0];
             }
             free(tex->pixels);
             //tex->isValid = false;
@@ -251,7 +259,7 @@ void glDeleteTextures(GLsizei n, const GLuint *textures) {
 
 void glBindTexture(GLenum target, GLuint texture) {
     if (target == GL_TEXTURE_2D) {
-        gCurrentState->texture2d = gCurrentState->textures + texture;
+        gCurrentState->texture2d = gCurrentState->textures.data + texture;
         if (gCurrentState->texture2d->target == 0) {
             gCurrentState->texture2d->target = target;
         }

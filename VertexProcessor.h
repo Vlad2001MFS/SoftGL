@@ -8,6 +8,9 @@ typedef struct vglVertex {
     vglVec3f normal;
 } vglVertex;
 
+void vglVPInitialize();
+void vglVPShutdown();
+
 vglVertex *vglVPNewVertex();
 void vglVPCopyVertex(size_t idx);
 void vglVPProcess();

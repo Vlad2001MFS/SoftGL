@@ -3,22 +3,24 @@
 #include "Rasterizer.h"
 #include "Common.h"
 
-#define VGL_VP_MAX_VERTICES 40000
+static VGL_VECTOR(vglVertex) gVertices;
 
-static vglVertex gVertices[VGL_VP_MAX_VERTICES];
-static size_t gVerticesCount = 0;
+void vglVPInitialize() {
+    VGL_VECTOR_CREATE(gVertices);
+}
+
+void vglVPShutdown() {
+    VGL_VECTOR_DESTROY(gVertices);
+}
 
 vglVertex *vglVPNewVertex() {
-    VGL_ASSERT(gVerticesCount < VGL_VP_MAX_VERTICES);
-
-    return gVertices + gVerticesCount++;
+    VGL_VECTOR_APPEND_EMPTY(gVertices);
+    return gVertices.data + gVertices.size - 1;
 }
 
 void vglVPCopyVertex(size_t idx) {
-    VGL_ASSERT(gVerticesCount < VGL_VP_MAX_VERTICES);
-    VGL_ASSERT(idx < gVerticesCount);
-
-    gVertices[gVerticesCount++] = gVertices[idx];
+    VGL_ASSERT(idx < gVertices.size);
+    VGL_VECTOR_APPEND(gVertices, gVertices.data[idx]);
 }
 
 void __fastcall proccessLight(vglLight *light, vglVec3f *ambient, vglVec3f *diffuse, vglVec3f *specular,
@@ -172,9 +174,9 @@ void vglVPProcess() {
     const vglVec3f ndcMax = {  1,  1,  1 };
 
     size_t verticesCount = 0;
-    vglVertex *v = gVertices;
-    for (size_t i = 0; i < gVerticesCount; i += 3) {
-        vglVertex *tri = gVertices + i;
+    vglVertex *v = gVertices.data;
+    for (size_t i = 0; i < gVertices.size; i += 3) {
+        vglVertex *tri = gVertices.data + i;
 
         bool triIsVisible = false;
         for (int j = 0; j < 3; j++) {
@@ -210,15 +212,15 @@ void vglVPProcess() {
             verticesCount += 3;
         }
     }
-    gVerticesCount = 0;
+    VGL_VECTOR_CLEAR(gVertices);
 
     vglRSProcess(verticesCount);
 }
 
 const vglVertex *vglVPGetVertices() {
-    return gVertices;
+    return gVertices.data;
 }
 
 size_t vglVPGetVerticesCount() {
-    return gVerticesCount;
+    return gVertices.size;
 }

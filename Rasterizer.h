@@ -2,6 +2,9 @@
 #include "MathLib.h"
 #include "VertexProcessor.h"
 
+void vglRSInitialize();
+void vglRSShutdown();
+
 void vglRSSetFramebuffer(const vglIntRect *rect, vglColor *colorBuffer, float *depthBuffer);
 const vglIntRect *vglRSGetFramebufferRect();
 

@@ -9,14 +9,26 @@ static vglVec2i gBufferSize = { 0, 0 };
 static vglColor *gColorBuffer = NULL;
 static float *gDepthBuffer = NULL;
 
-static vglColor gColorClearData[VGL_MAX_BUFFER_WIDTH*VGL_MAX_BUFFER_HEIGHT];
-static float gDepthClearData[VGL_MAX_BUFFER_WIDTH*VGL_MAX_BUFFER_HEIGHT];
+static VGL_VECTOR(vglColor) gColorClearData;
+static VGL_VECTOR(float) gDepthClearData;
 static bool gIsColorClearDataInitialized = false;
 static bool gIsDepthClearDataInitialized = false;
+
+void vglRSInitialize() {
+    VGL_VECTOR_CREATE(gColorClearData);
+    VGL_VECTOR_CREATE(gDepthClearData);
+}
+
+void vglRSShutdown() {
+    VGL_VECTOR_DESTROY(gDepthClearData);
+    VGL_VECTOR_DESTROY(gColorClearData);
+}
 
 void vglRSSetFramebuffer(const vglIntRect *rect, vglColor *colorBuffer, float *depthBuffer) {
     gBufferRect = *rect;
     VGL_RECT_GET_SIZE(gBufferSize, *rect);
+    VGL_VECTOR_RESIZE(gColorClearData, gBufferSize.x*gBufferSize.y);
+    VGL_VECTOR_RESIZE(gDepthClearData, gBufferSize.x*gBufferSize.y);
     gColorBuffer = colorBuffer;
     gDepthBuffer = depthBuffer;
 }
@@ -26,31 +38,31 @@ const vglIntRect *vglRSGetFramebufferRect() {
 }
 
 void vglRSClearColor(const vglColor *color) {
-    if (gColorClearData[0].rgba != color->rgba || !gIsColorClearDataInitialized) {
+    if (gColorClearData.data[0].rgba != color->rgba || !gIsColorClearDataInitialized) {
         gIsColorClearDataInitialized = true;
         vglColor data[128];
         for (int i = 0; i < VGL_ARRAYSIZE(data); i++) {
             data[i] = *color;
         }
-        for (size_t i = 0; i < VGL_MAX_BUFFER_WIDTH*VGL_MAX_BUFFER_HEIGHT; i += VGL_ARRAYSIZE(data)) {
-            memcpy(gColorClearData + i, data, sizeof(data));
+        for (size_t i = 0; i < gColorClearData.size; i += VGL_ARRAYSIZE(data)) {
+            memcpy(gColorClearData.data + i, data, VGL_MIN(sizeof(data), sizeof(vglColor)*(gColorClearData.size - i)));
         }
     }
-    memcpy(gColorBuffer, gColorClearData, gBufferSize.x*gBufferSize.y*sizeof(vglColor));
+    memcpy(gColorBuffer, gColorClearData.data, gColorClearData.size*sizeof(vglColor));
 }
 
 void vglRSClearDepth(float depth) {
-    if (gDepthClearData[0] != depth || !gIsDepthClearDataInitialized) {
+    if (gDepthClearData.data[0] != depth || !gIsDepthClearDataInitialized) {
         gIsDepthClearDataInitialized = true;
         float data[128];
         for (int i = 0; i < VGL_ARRAYSIZE(data); i++) {
             data[i] = depth;
         }
-        for (size_t i = 0; i < VGL_MAX_BUFFER_WIDTH*VGL_MAX_BUFFER_HEIGHT; i += VGL_ARRAYSIZE(data)) {
-            memcpy(gDepthClearData + i, data, sizeof(data));
+        for (size_t i = 0; i < gDepthClearData.size; i += VGL_ARRAYSIZE(data)) {
+            memcpy(gDepthClearData.data + i, data, VGL_MIN(sizeof(data), sizeof(float)*(gDepthClearData.size - i)));
         }
     }
-    memcpy(gDepthBuffer, gDepthClearData, gBufferSize.x*gBufferSize.y*sizeof(float));
+    memcpy(gDepthBuffer, gDepthClearData.data, gDepthClearData.size*sizeof(float));
 }
 
 #define COMPARE_FUNC(out, func, lhs, rhs) { \

@@ -1,9 +1,8 @@
 #pragma once
 #include "GL.h"
 #include "MathLib.h"
+#include "Common.h"
 #include <stdbool.h>
-
-#define VGL_MAX_TEXTURES 128
 
 typedef struct vglTexture {
     bool isValid;
@@ -47,10 +46,10 @@ typedef struct vglGLState {
 
     vglTexture *texture2d;
 
-    vglTexture textures[VGL_MAX_TEXTURES];
-    uint32_t texturesCount;
+    VGL_VECTOR(vglTexture) textures;
 } vglGLState;
 
 extern vglGLState *gCurrentState;
 
-void vglGLStateSetDefault(vglGLState *state);
+void vglGLStateCreate(vglGLState *state);
+void vglGLStateDestroy(vglGLState *state);
