@@ -23,12 +23,55 @@ void vglVPCopyVertex(size_t idx) {
 
 void __fastcall proccessLight(vglLight *light, vglVec3f *ambient, vglVec3f *diffuse, vglVec3f *specular,
                               const vglVec4f *pos, const vglVec3f *normal) {
-    VGL_VEC3_ADD(*ambient, *ambient, light->ambient);
+    vglVec3f lightDir;
+    float att;
+    if (light->position.w != 0.0f) {
+        VGL_VEC3_SUB(lightDir, light->position, *pos);
+        float dist = VGL_VEC3_LEN(lightDir);
+        att = 1.0f / (light->constantAtt + light->linearAtt*dist + light->quadraticAtt*dist*dist);
+    }
+    else {
+        VGL_VEC3_SET(lightDir, -light->position.x, -light->position.y, -light->position.z);
+        att = 1.0f;
+    }
+    VGL_VEC3_NORMALIZE(lightDir, lightDir);
+
+    float spotFactor = 1.0f;
+    if (light->spotCutOff != 180.0f) {
+        vglVec3f toVertexDir;
+        VGL_VEC3_SUB(toVertexDir, *pos, light->position);
+        VGL_VEC3_NORMALIZE(toVertexDir, toVertexDir);
+
+        float dot = VGL_VEC3_DOT(toVertexDir, light->spotDirection);
+        if (dot >= light->spotCutOffCos) {
+            spotFactor = pow(dot, light->spotExponent);
+        }
+        else {
+            spotFactor = 0.0f;
+        }
+    }
+    
+    float lightFactor = att*spotFactor;
+
+    VGL_VEC3_MUL_SCALAR(*ambient, light->ambient, lightFactor);
+
+    float diffIntensity = VGL_MAX(VGL_VEC3_DOT(*normal, lightDir), 0.0f);
+    VGL_VEC3_MUL_SCALAR(*diffuse, light->diffuse, lightFactor*diffIntensity);
+
+    float specIntensity = 0.0f;
+    if (diffIntensity != 0.0f) {
+        vglVec3f h = { lightDir.x, lightDir.y, lightDir.z + 1 };
+        float dot = VGL_VEC3_DOT(*normal, h);
+        specIntensity = pow(dot, 32.0f); // instead 32.0f must be GL_SPECULAR_EXPONENT, but I dont known what that and how find this constant
+    }
+    VGL_VEC3_MUL_SCALAR(*specular, light->specular, lightFactor*specIntensity);
+
+    /*VGL_VEC3_ADD(*ambient, *ambient, light->ambient);
 
     vglVec3f lightDir;
     float att;
     if (light->position.w == 0.0f) {
-        VGL_VEC3_SET(lightDir, light->position.x, light->position.y, light->position.z);
+        VGL_VEC3_SET(lightDir, -light->position.x, -light->position.y, -light->position.z);
         att = 1.0f;
         VGL_VEC3_NORMALIZE(lightDir, lightDir);
     }
@@ -61,17 +104,19 @@ void __fastcall proccessLight(vglLight *light, vglVec3f *ambient, vglVec3f *diff
             VGL_VEC3_ADD(*diffuse, *diffuse, tmp);
         }
 
-        vglVec3f invLightDir;
-        VGL_VEC3_NEGATIVE(invLightDir, lightDir);
+        //vglVec3f invLightDir;
+        //VGL_VEC3_NEGATIVE(invLightDir, lightDir);
 
-        vglVec3f reflectedLightDir;
-        VGL_VEC3_REFLECT(reflectedLightDir, invLightDir, *normal);
-        float specIntensity = VGL_VEC3_DOT(invLightDir, *normal)*att;
+        //vglVec3f reflectedLightDir;
+        //VGL_VEC3_REFLECT(reflectedLightDir, invLightDir, *normal);
+        vglVec3f h;
+        VGL_VEC3_SUB(h, lightDir, *pos);
+        float specIntensity = VGL_VEC3_DOT(h, *normal)*att;
         if (specIntensity > 0.0f) {
             VGL_VEC3_MUL_SCALAR(tmp, light->specular, specIntensity);
             VGL_VEC3_ADD(*specular, *specular, tmp);
         }
-    }
+    }*/
 }
 
 void __fastcall processLighting(vglColor *color, const vglVec4f *vPos, const vglVec3f *vNormal, const vglMat4f *normalMat) {
