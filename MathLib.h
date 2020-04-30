@@ -287,10 +287,10 @@ typedef struct vglFloatRect {
 typedef struct __declspec(align(16)) vglMat4f {
     union {
         struct {
-            float m11, m12, m13, m14;
-            float m21, m22, m23, m24;
-            float m31, m32, m33, m34;
-            float m41, m42, m43, m44;
+            float m11, m21, m31, m41;
+            float m12, m22, m32, m42;
+            float m13, m23, m33, m43;
+            float m14, m24, m34, m44;
         };
         // 0 4  8 12
         // 1 5  9 13
@@ -325,12 +325,7 @@ typedef struct __declspec(align(16)) vglMat4f {
 
 #define VGL_MAT4_SETV(out, ptr) memcpy(&(out), ptr, sizeof(out))
 
-#define VGL_MAT4_SET_IDENTITY(out) VGL_MAT4_SET(out, \
-    1, 0, 0, 0, \
-    0, 1, 0, 0, \
-    0, 0, 1, 0, \
-    0, 0, 0, 1  \
-)
+#define VGL_MAT4_SET_IDENTITY(out) { (out) = VGL_MAT4_IDENTITY(); }
 
 #define VGL_MAT4_SET_TRANSLATE(out, nx, ny, nz) VGL_MAT4_SET(out, \
     1, 0, 0, nx, \
@@ -396,27 +391,29 @@ typedef struct __declspec(align(16)) vglMat4f {
 #define VGL_MAT4_MUL(out, a, b) { \
     for (int r = 0; r < 4; r++) { \
         for (int c = 0; c < 4; c++) { \
-            VGL_MAT4_GET(out, r, c) = VGL_MAT4_GET(b, r, 0)*VGL_MAT4_GET(a, 0, c)  \
-                                    + VGL_MAT4_GET(b, r, 1)*VGL_MAT4_GET(a, 1, c)  \
-                                    + VGL_MAT4_GET(b, r, 2)*VGL_MAT4_GET(a, 2, c)  \
-                                    + VGL_MAT4_GET(b, r, 3)*VGL_MAT4_GET(a, 3, c); \
+            VGL_MAT4_GET(out, r, c) = VGL_MAT4_GET(a, r, 0)*VGL_MAT4_GET(b, 0, c)  \
+                                    + VGL_MAT4_GET(a, r, 1)*VGL_MAT4_GET(b, 1, c)  \
+                                    + VGL_MAT4_GET(a, r, 2)*VGL_MAT4_GET(b, 2, c)  \
+                                    + VGL_MAT4_GET(a, r, 3)*VGL_MAT4_GET(b, 3, c); \
         } \
     } \
 }
 
 #define VGL_MAT4_MUL_VEC4(out, a, b) { \
-    __m128 __v__ = _mm_load_ps((b).data); \
-    _mm_store_ss((out).data + 0, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 0), 0xF1)); \
-    _mm_store_ss((out).data + 1, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 1), 0xF1)); \
-    _mm_store_ss((out).data + 2, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 2), 0xF1)); \
-    _mm_store_ss((out).data + 3, _mm_dp_ps(__v__, _mm_load_ps((a).cols + 3), 0xF1)); \
+    for (int r = 0; r < 4; r++) { \
+        (out).data[r] = VGL_MAT4_GET(a, r, 0)*(b).data[0]  \
+                      + VGL_MAT4_GET(a, r, 1)*(b).data[1]  \
+                      + VGL_MAT4_GET(a, r, 2)*(b).data[2]  \
+                      + VGL_MAT4_GET(a, r, 3)*(b).data[3]; \
+    } \
 }
 
 #define VGL_MAT3_MUL_VEC3(out, a, b) { \
-    for (int c = 0; c < 3; c++) { \
-        (out).data[c] = VGL_MAT4_GET(a, 0, c)*(b).data[0]  \
-                      + VGL_MAT4_GET(a, 1, c)*(b).data[1]  \
-                      + VGL_MAT4_GET(a, 2, c)*(b).data[2]; \
+    for (int r = 0; r < 3; r++) { \
+        (out).data[r] = VGL_MAT4_GET(a, r, 0)*(b).data[0]  \
+                      + VGL_MAT4_GET(a, r, 1)*(b).data[1]  \
+                      + VGL_MAT4_GET(a, r, 2)*(b).data[2]  \
+                      + VGL_MAT4_GET(a, r, 3); \
     } \
 }
 
